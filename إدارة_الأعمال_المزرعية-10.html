@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>إدارة الأعمال المزرعية</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;900&family=Almarai:wght@300;400;700;800&display=swap');
+
+  :root {
+    --bg:       #080c14;
+    --bg2:      #0c1220;
+    --bg3:      #101828;
+    --surface:  #131d2e;
+    --surface2: #182436;
+    --border:   rgba(99,179,255,0.1);
+    --border2:  rgba(99,179,255,0.2);
+    --blue:     #3b82f6;
+    --blue-l:   #60a5fa;
+    --blue-xl:  #93c5fd;
+    --cyan:     #06b6d4;
+    --cyan-l:   #22d3ee;
+    --gold:     #f59e0b;
+    --gold-l:   #fbbf24;
+    --text:     #f0f6ff;
+    --text2:    #94a3b8;
+    --text3:    #64748b;
+    --green:    #10b981;
+    --green-l:  #34d399;
+    --red:      #ef4444;
+    --red-l:    #f87171;
+    --r-card:   20px;
+    --r-lg:     28px;
+    --r-sm:     12px;
+    --shadow-blue: 0 0 40px rgba(59,130,246,0.15);
+    --shadow-card: 0 8px 40px rgba(0,0,0,0.5);
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Cairo', 'Almarai', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    direction: rtl;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ══════════════════════════════════════
+     LAYERED BACKGROUND SYSTEM
+  ══════════════════════════════════════ */
+  .bg-scene {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  }
+
+  .bg-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(59,130,246,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+  }
+
+  .bg-glow1 {
+    position: absolute;
+    width: 700px; height: 700px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%);
+    top: -200px; right: -100px;
+    animation: driftA 18s ease-in-out infinite;
+  }
+
+  .bg-glow2 {
+    position: absolute;
+    width: 500px; height: 500px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(6,182,212,0.08) 0%, transparent 70%);
+    bottom: -100px; left: -80px;
+    animation: driftB 22s ease-in-out infinite;
+  }
+
+  .bg-glow3 {
+    position: absolute;
+    width: 300px; height: 300px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(245,158,11,0.06) 0%, transparent 70%);
+    top: 40%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation: driftC 15s ease-in-out infinite;
+  }
+
+  @keyframes driftA { 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(-40px,30px) scale(1.1);} }
+  @keyframes driftB { 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(30px,-25px) scale(1.08);} }
+  @keyframes driftC { 0%,100%{transform:translate(-50%,-50%) scale(1);} 50%{transform:translate(-50%,-50%) scale(1.3);} }
+
+  /* ══════════════════════════════════════
+     SCREENS
+  ══════════════════════════════════════ */
+  .screen { position: relative; z-index: 1; }
+  .screen.hidden { display: none !important; }
+
+  /* ══════════════════════════════════════
+     HOME SCREEN
+  ══════════════════════════════════════ */
+  #home-screen {
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 50px 24px 80px;
+  }
+
+  /* ─── TOP LOGO STRIP ─── */
+  .home-topbar {
+    width: 100%; max-width: 1100px;
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 64px;
+    animation: slideDown .7s cubic-bezier(.22,1,.36,1) both;
+  }
+
+  .logo-pill {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 999px;
+    padding: 8px 18px 8px 12px;
+  }
+
+  .logo-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--blue), var(--cyan));
+    box-shadow: 0 0 10px rgba(59,130,246,0.6);
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse { 0%,100%{box-shadow:0 0 10px rgba(59,130,246,0.6);} 50%{box-shadow:0 0 20px rgba(59,130,246,0.9);} }
+
+  .logo-text { font-size: 0.8rem; font-weight: 700; color: var(--blue-l); letter-spacing: 1px; }
+
+  .by-tag {
+    font-size: 0.78rem; color: var(--text3); font-weight: 600;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 14px;
+  }
+  .by-tag span { color: var(--gold-l); }
+
+  /* ─── HERO ─── */
+  .hero {
+    text-align: center;
+    margin-bottom: 60px;
+    animation: slideUp .9s cubic-bezier(.22,1,.36,1) .1s both;
+  }
+
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(6,182,212,0.08));
+    border: 1px solid rgba(59,130,246,0.25);
+    border-radius: 999px;
+    padding: 6px 16px;
+    font-size: 0.72rem; font-weight: 700; color: var(--cyan-l);
+    letter-spacing: 2px; text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .hero-eyebrow::before {
+    content: '';
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 8px var(--cyan);
+  }
+
+  .hero h1 {
+    font-family: 'Almarai', 'Cairo', sans-serif;
+    font-size: clamp(2.2rem, 5.5vw, 4rem);
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #ffffff 0%, #93c5fd 40%, #22d3ee 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    filter: drop-shadow(0 4px 24px rgba(59,130,246,0.3));
+  }
+
+  .hero-sub {
+    font-size: 1rem; color: var(--text2); font-weight: 400; letter-spacing: 0.5px;
+  }
+
+  /* ─── DIVIDER LINE ─── */
+  .h-line {
+    width: 100%; max-width: 1100px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(59,130,246,0.3), rgba(6,182,212,0.3), transparent);
+    margin-bottom: 40px;
+    animation: slideUp .8s ease .2s both;
+  }
+
+  /* ─── CHAPTER GRID ─── */
+  .chapters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    width: 100%; max-width: 1100px;
+  }
+
+  .chapter-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card);
+    padding: 0;
+    cursor: pointer;
+    transition: transform .35s cubic-bezier(.34,1.56,.64,1), box-shadow .35s ease, border-color .25s;
+    position: relative; overflow: hidden;
+    animation: fadeUp .6s cubic-bezier(.22,1,.36,1) both;
+  }
+
+  .chapter-card:nth-child(1){animation-delay:.05s} .chapter-card:nth-child(2){animation-delay:.1s}
+  .chapter-card:nth-child(3){animation-delay:.15s} .chapter-card:nth-child(4){animation-delay:.2s}
+  .chapter-card:nth-child(5){animation-delay:.25s} .chapter-card:nth-child(6){animation-delay:.3s}
+  .chapter-card:nth-child(7){animation-delay:.35s} .chapter-card:nth-child(8){animation-delay:.4s}
+
+  /* top accent stripe */
+  .card-stripe {
+    height: 3px;
+    background: linear-gradient(90deg, var(--blue), var(--cyan));
+    transform: scaleX(0); transform-origin: right;
+    transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+  }
+
+  .chapter-card:hover .card-stripe { transform: scaleX(1); }
+
+  .card-inner {
+    padding: 24px 22px 22px;
+  }
+
+  .card-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .card-num-badge {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(6,182,212,0.08));
+    border: 1px solid rgba(59,130,246,0.25);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; font-weight: 800; color: var(--blue-l);
+    transition: all .3s;
+  }
+
+  .chapter-card:hover .card-num-badge {
+    background: linear-gradient(135deg, rgba(59,130,246,0.3), rgba(6,182,212,0.15));
+    border-color: rgba(59,130,246,0.5);
+    box-shadow: 0 0 16px rgba(59,130,246,0.3);
+  }
+
+  .card-emoji { font-size: 1.5rem; transition: transform .3s cubic-bezier(.34,1.56,.64,1); }
+  .chapter-card:hover .card-emoji { transform: scale(1.2) rotate(-8deg); }
+
+  .card-title {
+    font-size: 1.05rem; font-weight: 700; color: var(--text);
+    margin-bottom: 14px; line-height: 1.4;
+  }
+
+  .card-footer {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .card-start-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(6,182,212,0.1));
+    border: 1px solid rgba(59,130,246,0.2);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 0.78rem; font-weight: 700; color: var(--blue-l);
+    transition: all .3s;
+    opacity: 0; transform: translateY(4px);
+  }
+
+  .chapter-card:hover .card-start-btn {
+    opacity: 1; transform: translateY(0);
+    background: linear-gradient(135deg, rgba(59,130,246,0.25), rgba(6,182,212,0.15));
+    border-color: rgba(59,130,246,0.4);
+  }
+
+  .card-chevron {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.75rem; color: var(--text3);
+    transition: all .3s;
+  }
+
+  .chapter-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(59,130,246,0.35);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(59,130,246,0.1), var(--shadow-blue);
+  }
+
+  .chapter-card:hover .card-chevron {
+    background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.3); color: var(--blue-l);
+    transform: rotate(-180deg);
+  }
+
+  .chapter-card:active { transform: translateY(-2px) scale(0.99); }
+
+  /* ══════════════════════════════════════
+     QUIZ HEADER
+  ══════════════════════════════════════ */
+  #quiz-screen { min-height: 100vh; display: flex; flex-direction: column; }
+
+  .quiz-header {
+    background: rgba(12,18,32,0.92);
+    backdrop-filter: blur(24px) saturate(1.5);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 28px;
+    position: sticky; top: 0; z-index: 100;
+  }
+
+  .quiz-header-top {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .btn-back {
+    display: flex; align-items: center; gap: 7px;
+    background: rgba(59,130,246,0.08);
+    border: 1px solid rgba(59,130,246,0.18);
+    color: var(--blue-l);
+    padding: 7px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    font-family: 'Cairo', sans-serif; font-size: 0.82rem; font-weight: 700;
+    transition: all .2s;
+  }
+  .btn-back:hover { background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.35); }
+
+  .quiz-chapter-title { font-weight: 700; font-size: 0.95rem; color: var(--text); }
+
+  .quiz-counter {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 0.78rem; font-weight: 700; color: var(--text2);
+  }
+
+  .progress-track {
+    background: rgba(255,255,255,0.06);
+    border-radius: 999px; height: 5px; overflow: visible; position: relative;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--cyan));
+    border-radius: 999px;
+    transition: width .6s cubic-bezier(.34,1.56,.64,1);
+    position: relative;
+    box-shadow: 0 0 14px rgba(59,130,246,0.5);
+  }
+
+  .progress-fill::after {
+    content: '';
+    position: absolute; left: -1px; top: 50%; transform: translateY(-50%);
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--cyan);
+    box-shadow: 0 0 10px var(--cyan), 0 0 20px rgba(6,182,212,0.4);
+    transition: left .6s cubic-bezier(.34,1.56,.64,1);
+  }
+
+  /* ══════════════════════════════════════
+     QUIZ BODY
+  ══════════════════════════════════════ */
+  .quiz-body {
+    flex: 1;
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 44px 20px 80px;
+  }
+
+  .question-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: 0;
+    width: 100%; max-width: 800px;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    animation: questionIn .5s cubic-bezier(.34,1.56,.64,1) both;
+  }
+
+  @keyframes questionIn {
+    from { opacity:0; transform:translateY(28px) scale(.97); }
+    to   { opacity:1; transform:translateY(0)    scale(1);   }
+  }
+
+  .card-top-bar {
+    height: 3px;
+    background: linear-gradient(90deg, var(--blue), var(--cyan), var(--gold));
+    background-size: 200% 100%;
+    animation: shimmer 3s linear infinite;
+  }
+
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+  .card-content { padding: 36px 40px; }
+
+  .question-type-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    background: linear-gradient(135deg, rgba(59,130,246,0.12), rgba(6,182,212,0.08));
+    border: 1px solid rgba(59,130,246,0.22);
+    color: var(--cyan-l);
+    font-size: 0.72rem; font-weight: 800; letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    border-radius: 999px;
+    margin-bottom: 22px;
+  }
+
+  .question-text {
+    font-size: clamp(1rem, 2.2vw, 1.18rem);
+    font-weight: 600;
+    line-height: 1.9;
+    color: var(--text);
+    margin-bottom: 32px;
+  }
+
+  /* ── TRUE / FALSE ── */
+  .tf-buttons {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 14px; margin-bottom: 24px;
+  }
+
+  .tf-btn {
+    padding: 28px 16px 22px;
+    border-radius: 18px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    font-family: 'Cairo', sans-serif;
+    transition: all .3s cubic-bezier(.34,1.56,.64,1);
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+
+  /* shimmer sweep on hover */
+  .tf-btn::before {
+    content: '';
+    position: absolute; top: -50%; left: -60%; width: 40%; height: 200%;
+    background: linear-gradient(105deg, transparent, rgba(255,255,255,0.08), transparent);
+    transform: skewX(-20deg);
+    transition: left .5s ease;
+    pointer-events: none;
+  }
+  .tf-btn:hover:not(:disabled)::before { left: 120%; }
+
+  .tf-icon { font-size: 2.4rem; }
+  .tf-label { font-size: 1.4rem; font-weight: 900; }
+
+  .tf-btn.true-btn {
+    background: linear-gradient(145deg, rgba(16,185,129,0.1), rgba(16,185,129,0.04));
+    border-color: rgba(16,185,129,0.22);
+    color: var(--green-l);
+  }
+  .tf-btn.false-btn {
+    background: linear-gradient(145deg, rgba(239,68,68,0.1), rgba(239,68,68,0.04));
+    border-color: rgba(239,68,68,0.22);
+    color: var(--red-l);
+  }
+
+  .tf-btn.true-btn:hover:not(:disabled) {
+    background: linear-gradient(145deg, rgba(16,185,129,0.22), rgba(16,185,129,0.1));
+    border-color: rgba(16,185,129,0.55);
+    box-shadow: 0 10px 40px rgba(16,185,129,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+    transform: translateY(-6px) scale(1.02);
+  }
+  .tf-btn.false-btn:hover:not(:disabled) {
+    background: linear-gradient(145deg, rgba(239,68,68,0.22), rgba(239,68,68,0.1));
+    border-color: rgba(239,68,68,0.55);
+    box-shadow: 0 10px 40px rgba(239,68,68,0.25), inset 0 1px 0 rgba(255,255,255,0.08);
+    transform: translateY(-6px) scale(1.02);
+  }
+
+  .tf-btn:active:not(:disabled) { transform: scale(.97); }
+  .tf-btn:disabled { cursor: default; }
+
+  .tf-btn.selected-correct {
+    background: linear-gradient(145deg, rgba(16,185,129,0.28), rgba(16,185,129,0.14)) !important;
+    border-color: var(--green) !important; color: #6ee7b7 !important;
+    box-shadow: 0 0 0 3px rgba(16,185,129,0.2), 0 12px 40px rgba(16,185,129,0.3) !important;
+  }
+  .tf-btn.selected-wrong {
+    background: linear-gradient(145deg, rgba(239,68,68,0.28), rgba(239,68,68,0.14)) !important;
+    border-color: var(--red) !important; color: #fca5a5 !important;
+    box-shadow: 0 0 0 3px rgba(239,68,68,0.2), 0 12px 40px rgba(239,68,68,0.3) !important;
+  }
+  .tf-btn.show-correct {
+    border-color: rgba(16,185,129,0.6) !important;
+    background: linear-gradient(145deg, rgba(16,185,129,0.18), rgba(16,185,129,0.08)) !important;
+  }
+
+  /* ── MCQ ── */
+  .mcq-options { display: flex; flex-direction: column; gap: 11px; margin-bottom: 24px; }
+
+  .mcq-option {
+    padding: 15px 20px;
+    border-radius: 14px;
+    border: 1.5px solid rgba(255,255,255,0.07);
+    background: rgba(255,255,255,0.025);
+    cursor: pointer;
+    font-family: 'Cairo', sans-serif; font-size: 0.98rem; font-weight: 500;
+    color: var(--text);
+    transition: all .25s cubic-bezier(.34,1.56,.64,1);
+    display: flex; align-items: center; gap: 14px;
+    position: relative; overflow: hidden;
+  }
+
+  .mcq-option::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(59,130,246,0.06), transparent);
+    opacity: 0; transition: opacity .2s;
+  }
+  .mcq-option:hover:not(:disabled)::after { opacity: 1; }
+
+  .opt-letter {
+    width: 36px; height: 36px; flex-shrink: 0;
+    background: rgba(59,130,246,0.08);
+    border: 1.5px solid rgba(59,130,246,0.18);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 0.82rem; color: var(--blue-l);
+    transition: all .25s; z-index: 1;
+  }
+
+  .mcq-option:hover:not(:disabled) {
+    background: rgba(59,130,246,0.06);
+    border-color: rgba(59,130,246,0.28);
+    transform: translateX(-5px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  }
+  .mcq-option:hover:not(:disabled) .opt-letter {
+    background: rgba(59,130,246,0.18); border-color: rgba(59,130,246,0.4);
+    box-shadow: 0 0 12px rgba(59,130,246,0.3);
+  }
+  .mcq-option:active:not(:disabled) { transform: scale(.99); }
+  .mcq-option:disabled { cursor: default; }
+
+  .mcq-option.correct {
+    background: linear-gradient(135deg, rgba(16,185,129,0.18), rgba(16,185,129,0.07)) !important;
+    border-color: var(--green) !important; color: #a7f3d0 !important;
+    box-shadow: 0 0 0 2px rgba(16,185,129,0.15), 0 6px 24px rgba(16,185,129,0.2) !important;
+  }
+  .mcq-option.correct .opt-letter { background: rgba(16,185,129,0.25); border-color: var(--green); color: #6ee7b7; }
+
+  .mcq-option.wrong {
+    background: linear-gradient(135deg, rgba(239,68,68,0.18), rgba(239,68,68,0.07)) !important;
+    border-color: var(--red) !important; color: #fecaca !important;
+    box-shadow: 0 0 0 2px rgba(239,68,68,0.15), 0 6px 24px rgba(239,68,68,0.2) !important;
+  }
+  .mcq-option.wrong .opt-letter { background: rgba(239,68,68,0.25); border-color: var(--red); color: #fca5a5; }
+
+  /* ── FEEDBACK ── */
+  .feedback-box {
+    border-radius: 14px; padding: 16px 20px;
+    margin-bottom: 22px;
+    display: none; align-items: center; gap: 14px;
+    animation: popIn .4s cubic-bezier(.34,1.56,.64,1) both;
+  }
+
+  @keyframes popIn {
+    from { opacity:0; transform:scale(.93) translateY(12px); }
+    to   { opacity:1; transform:scale(1)   translateY(0);    }
+  }
+
+  .feedback-box.show { display: flex; }
+  .feedback-box.correct-fb {
+    background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(16,185,129,0.04));
+    border: 1px solid rgba(16,185,129,0.28);
+  }
+  .feedback-box.wrong-fb {
+    background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(239,68,68,0.04));
+    border: 1px solid rgba(239,68,68,0.28);
+  }
+  .feedback-icon { font-size: 1.8rem; flex-shrink: 0; }
+  .feedback-text { font-size: 0.95rem; font-weight: 700; }
+  .feedback-box.correct-fb .feedback-text { color: var(--green-l); }
+  .feedback-box.wrong-fb   .feedback-text { color: var(--red-l); }
+
+  /* ── NEXT BUTTON ── */
+  .btn-next {
+    display: none; width: 100%; padding: 17px;
+    background: linear-gradient(135deg, var(--blue), #1d4ed8);
+    color: #fff; border: none; border-radius: 14px;
+    font-family: 'Cairo', sans-serif; font-size: 1.05rem; font-weight: 800;
+    cursor: pointer;
+    transition: all .3s cubic-bezier(.34,1.56,.64,1);
+    position: relative; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(59,130,246,0.35);
+  }
+
+  .btn-next::before {
+    content: '';
+    position: absolute; top: 0; left: -100%; width: 60%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    transition: left .5s ease;
+  }
+  .btn-next:hover::before { left: 140%; }
+  .btn-next.show { display: block; animation: popIn .4s ease both; }
+  .btn-next:hover { transform: translateY(-3px); box-shadow: 0 14px 44px rgba(59,130,246,0.45); }
+  .btn-next:active { transform: scale(.98); }
+
+  /* ══════════════════════════════════════
+     RESULTS SCREEN
+  ══════════════════════════════════════ */
+  #results-screen {
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .results-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    overflow: hidden;
+    width: 100%; max-width: 540px;
+    text-align: center;
+    animation: slideUp .6s cubic-bezier(.22,1,.36,1) both;
+    box-shadow: var(--shadow-card), var(--shadow-blue);
+  }
+
+  .results-top-bar {
+    height: 4px;
+    background: linear-gradient(90deg, var(--blue), var(--cyan), var(--gold));
+    background-size: 200% 100%;
+    animation: shimmer 2s linear infinite;
+  }
+
+  .results-body { padding: 48px 36px 40px; }
+
+  .result-ring {
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: conic-gradient(var(--blue) 0%, var(--cyan) 100%);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px;
+    position: relative;
+    box-shadow: 0 0 0 4px rgba(59,130,246,0.15), 0 0 40px rgba(59,130,246,0.2);
+    animation: spin-in .8s cubic-bezier(.34,1.56,.64,1) .2s both;
+  }
+
+  @keyframes spin-in { from{transform:scale(0) rotate(-180deg);} to{transform:scale(1) rotate(0);} }
+
+  .result-ring-inner {
+    width: 94px; height: 94px;
+    background: var(--surface);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column;
+  }
+
+  .result-pct {
+    font-family: 'Almarai', sans-serif; font-size: 1.9rem; font-weight: 800;
+    background: linear-gradient(135deg, #fff, var(--cyan-l));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    line-height: 1;
+  }
+
+  .result-emoji-sm { font-size: 1rem; margin-top: 2px; }
+
+  .result-title {
+    font-size: 1.4rem; font-weight: 800; color: var(--text); margin-bottom: 6px;
+  }
+
+  .result-sub { font-size: 0.88rem; color: var(--text2); margin-bottom: 28px; }
+
+  .result-stats {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 12px; margin-bottom: 28px;
+  }
+
+  .stat-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 16px 8px;
+    transition: transform .2s;
+  }
+  .stat-box:hover { transform: translateY(-3px); }
+
+  .stat-val { font-size: 1.7rem; font-weight: 800; font-family: 'Almarai', sans-serif; }
+  .stat-lbl { font-size: 0.7rem; color: var(--text3); margin-top: 4px; font-weight: 700; }
+  .stat-box:nth-child(1) .stat-val { color: var(--green-l); }
+  .stat-box:nth-child(2) .stat-val { color: var(--red-l); }
+  .stat-box:nth-child(3) .stat-val { color: var(--gold-l); }
+
+  .result-btns { display: flex; flex-direction: column; gap: 10px; }
+
+  .btn-retry {
+    padding: 15px;
+    background: linear-gradient(135deg, var(--blue), #1d4ed8);
+    color: #fff; border: none; border-radius: 14px;
+    font-family: 'Cairo', sans-serif; font-size: 1rem; font-weight: 800;
+    cursor: pointer; transition: all .3s;
+    box-shadow: 0 8px 28px rgba(59,130,246,0.35);
+  }
+  .btn-retry:hover { transform: translateY(-3px); box-shadow: 0 14px 40px rgba(59,130,246,0.45); }
+
+  .btn-home {
+    padding: 13px;
+    background: rgba(255,255,255,0.04);
+    color: var(--text2); border: 1px solid var(--border);
+    border-radius: 14px;
+    font-family: 'Cairo', sans-serif; font-size: 0.95rem; font-weight: 600;
+    cursor: pointer; transition: all .25s;
+  }
+  .btn-home:hover { background: rgba(255,255,255,0.07); color: var(--text); }
+
+  /* ══════════════════════════════════════
+     KEYFRAMES
+  ══════════════════════════════════════ */
+  @keyframes slideDown { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes slideUp   { from{opacity:0;transform:translateY(24px)}  to{opacity:1;transform:translateY(0)} }
+  @keyframes fadeUp    { from{opacity:0;transform:translateY(20px) scale(.98)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+  /* ══════════════════════════════════════
+     RESPONSIVE
+  ══════════════════════════════════════ */
+  @media (max-width: 640px) {
+    .home-topbar { margin-bottom: 40px; }
+    .hero h1 { font-size: 2rem; }
+    .chapters-grid { grid-template-columns: 1fr; }
+    .card-content { padding: 24px 20px; }
+    .tf-buttons { gap: 10px; }
+    .tf-btn { padding: 22px 12px 18px; }
+    .results-body { padding: 36px 24px 32px; }
+    .result-stats { gap: 8px; }
+    .quiz-body { padding: 28px 14px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- BACKGROUND SCENE -->
+<div class="bg-scene">
+  <div class="bg-grid"></div>
+  <div class="bg-glow1"></div>
+  <div class="bg-glow2"></div>
+  <div class="bg-glow3"></div>
+</div>
+
+<!-- HOME SCREEN -->
+<div id="home-screen" class="screen">
+  <div class="home-topbar">
+    <div class="logo-pill">
+      <div class="logo-dot"></div>
+      <div class="logo-text">منصة الاختبارات</div>
+    </div>
+    <div class="by-tag">BY: <span>AhmedAyman</span></div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-eyebrow">interactive quiz platform</div>
+    <h1>إدارة الأعمال المزرعية</h1>
+    <div class="hero-sub">اختر الفصل وابدأ الاختبار — ثمانية فصول كاملة</div>
+  </div>
+
+  <div class="h-line"></div>
+  <div class="chapters-grid" id="chapters-grid"></div>
+</div>
+
+<!-- QUIZ SCREEN -->
+<div id="quiz-screen" class="screen hidden">
+  <div class="quiz-header">
+    <div class="quiz-header-top">
+      <button class="btn-back" onclick="goHome()">&#8592; الرئيسية</button>
+      <span class="quiz-chapter-title" id="quiz-title"></span>
+      <span class="quiz-counter" id="quiz-counter"></span>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-bar"></div>
+    </div>
+  </div>
+  <div class="quiz-body">
+    <div class="question-card" id="question-card">
+      <div class="card-top-bar"></div>
+      <div class="card-content">
+        <div class="question-type-badge" id="q-type-badge"></div>
+        <div class="question-text" id="q-text"></div>
+        <div id="q-options"></div>
+        <div class="feedback-box" id="feedback-box">
+          <div class="feedback-icon" id="fb-icon"></div>
+          <div class="feedback-text" id="fb-text"></div>
+        </div>
+        <button class="btn-next" id="btn-next" onclick="nextQuestion()"></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS SCREEN -->
+<div id="results-screen" class="screen hidden">
+  <div class="results-card">
+    <div class="results-top-bar"></div>
+    <div class="results-body">
+      <div class="result-ring">
+        <div class="result-ring-inner">
+          <div class="result-pct" id="result-score"></div>
+          <div class="result-emoji-sm" id="result-emoji"></div>
+        </div>
+      </div>
+      <div class="result-title">اكتملت النتيجة!</div>
+      <div class="result-sub">أداؤك في هذا الفصل</div>
+      <div class="result-stats">
+        <div class="stat-box">
+          <div class="stat-val" id="stat-correct"></div>
+          <div class="stat-lbl">إجابات صحيحة</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="stat-wrong"></div>
+          <div class="stat-lbl">إجابات خاطئة</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-val" id="stat-pct"></div>
+          <div class="stat-lbl">النسبة المئوية</div>
+        </div>
+      </div>
+      <div class="result-btns">
+        <button class="btn-retry" onclick="retryChapter()">🔄 إعادة الاختبار</button>
+        <button class="btn-home" onclick="goHome()">🏠 العودة للرئيسية</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const chapters = [
+  {
+    title: "اختبار الفصل الأول",
+    icon: "🌾",
+    questions: [
+      // صح/خطأ
+      {type:"tf",text:"تعرف الإدارة المزرعية بأنها أحد فروع علم الاقتصاد الزراعي الذي يختص بدراسة تنظيم ومراقبة العمليات المزرعية المختلفة في الوحدة الإنتاجية الزراعية",answer:true},
+      {type:"tf",text:"الوحدة الإنتاجية الزراعية تسمى بالمزرعة.",answer:true},
+      {type:"tf",text:"عرف آدامز الإدارة المزرعية بأنها إستخدام القواعد والنظريات والقوانين والأساليب العلمية المجربة في إختيار وتنظيم المزرعة الفردية ومراقبة عملياتها الإنتاجية بطريقة تمكن المزارع من الحصول على أكبر قدر ممكن من الأرباح في عملة المزرعي.",answer:true},
+      {type:"tf",text:"عرف إيفرسون الإدارة المزرعية بأنها العلم الذي يدرس ويختبر التنظيم المزرعي في مزرعة ما من وجهة النظر المتعلقة بالكفاءة الإنتاجية",answer:true},
+      {type:"tf",text:"عرف الزلاقي الإدارة المزرعية بأنها علم وفن وعمل اقتصادي",answer:true},
+      {type:"tf",text:"من أهداف الإدارة المزرعية تحقيق أقصى قدر من الأرباح",answer:true},
+      {type:"tf",text:"من أهداف الإدارة المزرعية إنخفاض أقصى قدر من الخسارة",answer:false},
+      {type:"tf",text:"من أهداف الإدارة المزرعية رفع المستوى المعيشي للأسرة المزرعية",answer:true},
+      {type:"tf",text:"من أهداف الإدارة المزرعية إنخفاض المستوى المعيشي للأسرة المزرعية",answer:false},
+      {type:"tf",text:"لتحقيق أقصى صافي عائد من النشاط الإنتاجي للمزرعة لا بد من الوصول لأعلى كفاءة إنتاجية من إستغلال الموارد المتاحة.",answer:true},
+      {type:"tf",text:"لتحقيق أقصى صافي عائد من النشاط الإنتاجي للمزرعة لا بد من الوصول لأعلى كفاءة إنتاجية من إستغلال الموارد الغير المتاحة",answer:false},
+      {type:"tf",text:"من أهداف الإدارة المزرعية إستغلال المزرعة كبيئة للمعيشة",answer:true},
+      {type:"tf",text:"من أهداف الإدارة المزرعية إمتلاك المزرعة بهدف إستغلال وقت الفراغ أو التسهيلات التي تمنحها الدولة",answer:true},
+      {type:"tf",text:"من أهداف الإدارة المزرعية إمتلاك المزرعة بهدف التباهي والرفاهية الإجتماعية",answer:true},
+      {type:"tf",text:"من أهداف الإدارة المزرعية إمتلاك المزرعة بهدف البيع",answer:true},
+      {type:"tf",text:"تعرف المزرعة من وجهة النظر الاقتصادية بأنها الوحدة الإنتاجية في البنيان الاقتصادي الزراعي",answer:true},
+      {type:"tf",text:"تعرف المزرعة من وجهة النظر الإحصائية بأنها مساحة من الأرض متصلة (أي قطعة واحدة) أو منفصلة (أي عدة قطع متباعدة) تستغل كلياً أو جزئياً في الإنتاج الزراعي",answer:true},
+      {type:"tf",text:"تقسم المزارع وفقاً لنوع الإنتاج إلى مزارع متخصصة",answer:true},
+      {type:"tf",text:"تقسم المزارع وفقاً لنوع الإنتاج إلى مزارع متنوعة",answer:true},
+      {type:"tf",text:"المزارع المتخصصة هي المزارع التي تعتمد في الحصول على أكثر من 50% من دخلها الإجمالي السنوي على محصول رئيسي واحد",answer:true},
+      {type:"tf",text:"المزارع المتخصصة هي المزارع التي تعتمد في الحصول على أقل من 50% من دخلها الإجمالي السنوي على محصول رئيسي واحد",answer:false},
+      {type:"tf",text:"المزارع المتنوعة هي المزارع التي تعتمد في الحصول على أكثر من 50% من دخلها الإجمالي السنوي على عدة مشروعات مزرعية",answer:true},
+      {type:"tf",text:"المزارع المتنوعة هي المزارع التي تعتمد في الحصول على أقل من 50% من دخلها الإجمالي السنوي على عدة مشروعات مزرعية",answer:false},
+      {type:"tf",text:"تقسم المزارع وفقاً لنوع الإدارة إلى المزارع ذات المدير المتفرغ",answer:true},
+      {type:"tf",text:"تقسم المزارع وفقاً لنوع الإدارة إلى المزارع ذات المدير الغير متفرغ",answer:true},
+      {type:"tf",text:"من أنواع المزارع ذات المدير المتفرغ مزارع ذات الاكتفاء الذاتى",answer:true},
+      {type:"tf",text:"من أنواع المزارع ذات المدير المتفرغ مزارع تجارية",answer:true},
+      {type:"tf",text:"من أنواع المزارع ذات المدير المتفرغ مزارع عائلية",answer:true},
+      {type:"tf",text:"تقسم المزارع وفقاً لحجمها أو سعتها حسب مساحة المزرعة",answer:true},
+      {type:"tf",text:"تقسم المزارع وفقاً لحجمها أو سعتها حسب القيمة الكلية للإنتاج",answer:true},
+      {type:"tf",text:"تقسم المزارع وفقاً لحجمها أو سعتها حسب السعة الإنتاجية للمزرعة",answer:true},
+      {type:"tf",text:"مزارع الاستكفاء الذاتي هي مزارع تركز على إنتاج كل أو معظم السلع الضرورية للمزارع وعائلته",answer:true},
+      {type:"tf",text:"مزارع الاستكفاء الذاتي هي مزارع تركز على إنتاج جزء صغير من السلع الضرورية للمزارع وعائلته",answer:false},
+      {type:"tf",text:"المزارع التجارية هي المزارع التي توجه معظم إنتاجها للسوق",answer:true},
+      {type:"tf",text:"المزارع التجارية هي المزارع التي توجه جزء صغير من إنتاجها للسوق",answer:false},
+      {type:"tf",text:"المزارع العائلية هي المزارع التي تعتمد بصفة أساسية على أفراد عائلة المزارع في العمل المزرعي",answer:true},
+      {type:"tf",text:"المزارع العائلية هي المزارع التي لا تعتمد بصفة أساسية على أفراد عائلة المزارع في العمل المزرعي",answer:false},
+      {type:"tf",text:"المزارع ذات المدير الغير متفرغ: وهي المزارع التي يقوم المدير بتوزيع وقته بين إدارة المزرعة وعمل آخر يقوم به",answer:true},
+      {type:"tf",text:"تقاس السعة الإنتاجية بما تحتويه المزرعة من عناصر الإنتاج وهو أنسب المعايير التي يمكن أن تقاس بها حجم المزرعة",answer:true},
+      {type:"tf",text:"التنظيم المزرعى هو أحد مجالات البحث في إدارة الأعمال المزرعية",answer:true},
+      {type:"tf",text:"التنظيم المزرعى ليس من مجالات البحث في إدارة الأعمال المزرعية",answer:false},
+      {type:"tf",text:"التنظيم المزرعي هو الجزء الذي يحدد الأهداف ووضع البرامج الكفيلة بتحقيقها داخل المزرعة",answer:true},
+      {type:"tf",text:"يبحث التنظيم المزرعي في الموازنة بين العوامل التي تؤثر على الإنتاج داخل المزرعة",answer:true},
+      {type:"tf",text:"يقصد بالتنظيم المزرعى اختيار المزرعة وتحديد سعتها وموقعها وتجهيزها",answer:true},
+      {type:"tf",text:"يقصد بالتنظيم المزرعى اختيار أنواع وأصناف الزروع النباتية والحيوانية المناسبة والتي توافق الظروف الاقتصادية والطبيعية للمزرعة.",answer:true},
+      {type:"tf",text:"يقصد بالتنظيم المزرعى تصميم الدورة الزراعية أي وضع البرامج المناسبة لاستغلال الأرض مع مراعاة ظروف ونوع التربة والتشريعات الزراعية",answer:true},
+      {type:"tf",text:"يقصد بالتنظيم المزرعى اختيار عناصر الإنتاج وتحديد نسبة كل منها حيث تتدخل عوامل كثيرة في هذا الاختيار منها الاحتياجات الفنية للزروع النباتية والحيوانية.",answer:true},
+      {type:"tf",text:"يقصد بالتنظيم المزرعى تقدير أنواع ومقادير التكاليف الزراعية المتغيرة من تقاوي وأسمدة وأعلاف ووقود وأجور عمال وغيرها.",answer:true},
+      {type:"tf",text:"يقصد بالتنظيم المزرعى تقدير الاحتياجات الرأسمالية المطلوبة",answer:true},
+      {type:"tf",text:"يقصد بالتنظيم المزرعى اختيار طرق وأساليب الإنتاج التي تتناسب مع الظروف الاقتصادية والطبيعية",answer:true},
+      {type:"tf",text:"يقصد بالتنظيم المزرعى وضع أسس اختيار العمالة المناسبة لعمليات الإنتاجية",answer:true},
+      {type:"tf",text:"يقصد بالتنظيم المزرعى تصميم السجلات المناسبة لتسهيل سير العمليات الإنتاجية",answer:true},
+      {type:"tf",text:"يقصد بالتنظيم المزرعى تقدير الإيرادات المزرعية المتوقعة من خلال إعداد ميزانية المزرعة.",answer:true},
+      {type:"tf",text:"يقصد بالتنظيم المزرعى وضع خطة للتخزين وخطة تسويقية ووضع خطط بديلة",answer:true},
+      {type:"tf",text:"من وظائف الرقابة المزرعية تنفيذ الخطة الإنتاجية المزرعية",answer:true},
+      {type:"tf",text:"من وظائف الرقابة المزرعية وضع خطة تنفيذ العمل اليومي",answer:true},
+      {type:"tf",text:"من وظائف الرقابة المزرعية اختيار العمالة اللازمة لأداء العمليات المزرعية المختلفة",answer:true},
+      {type:"tf",text:"من وظائف الرقابة المزرعية الإشراف الفعلي على سير العمل وشراء مستلزمات الإنتاج",answer:true},
+      {type:"tf",text:"من وظائف الرقابة المزرعية تنفيذ جميع أنواع التعاقدات التي تخص المزرعة",answer:true},
+      {type:"tf",text:"من وظائف الرقابة المزرعية مباشرة تمويل العمليات المزرعية المختلفة وفقاً لبرنامج التمويل",answer:true},
+      {type:"tf",text:"من وظائف الرقابة المزرعية إمساك السجلات والحسابات وإخطار المنظم عن الإنجاز اليومي.",answer:true},
+      {type:"tf",text:"النمط المزرعي هو المنوال الإنتاجي ومنوال الرقابة المزرعية اللذان يتبعان في مجموعة من المزارع المتماثلة إلى درجة عالية من التماثل بالنسبة لنوع الإنتاج والطرق والوسائل والأساليب المزرعية كذلك طرق وتسويق المنتجات المختلفة.",answer:true},
+      {type:"tf",text:"من العوامل الاقتصادية والإجتماعية التي تلعب دوراً رئيسياً في تحديد الأنماط المزرعية الطلب النسبي على السلع الزراعية",answer:true},
+      {type:"tf",text:"من العوامل الاقتصادية والإجتماعية التي تلعب دوراً رئيسياً في تحديد الأنماط المزرعية ظروف العمل بالنسبة للعرض وفئات الأجور",answer:true},
+      {type:"tf",text:"من العوامل الاقتصادية والإجتماعية التي تلعب دوراً رئيسياً في تحديد الأنماط المزرعية مدى توفر رأس المال",answer:true},
+      {type:"tf",text:"من العوامل الاقتصادية والإجتماعية التي تلعب دوراً رئيسياً في تحديد الأنماط المزرعية الكثافة السكانية",answer:true},
+      {type:"tf",text:"من العوامل الاقتصادية والإجتماعية التي تلعب دوراً رئيسياً في تحديد الأنماط المزرعية أساليب التسويق وتكاليف عمليات النقل والتسويق",answer:true},
+      {type:"tf",text:"من العوامل الاقتصادية والإجتماعية التي تلعب دوراً رئيسياً في تحديد الأنماط المزرعية احتياجات السوق وتكامل المشاريع الزراعية",answer:true},
+      {type:"tf",text:"من العوامل الاقتصادية والإجتماعية التي تلعب دوراً رئيسياً في تحديد الأنماط المزرعية تغيير عادات وأذواق المستهلكين",answer:true},
+      {type:"tf",text:"من العوامل الاقتصادية والإجتماعية التي تلعب دوراً رئيسياً في تحديد الأنماط المزرعية ميكنة العمليات الزراعية",answer:true},
+      {type:"tf",text:"من العوامل الاقتصادية والإجتماعية التي تلعب دوراً رئيسياً في تحديد الأنماط المزرعية قرب أو بعد مراكز الأسواق أو الاستهلاك من مراكز الإنتاج",answer:true},
+      {type:"tf",text:"من خصائص النشاط الاقتصادي الزراعي الزراعة المتقدمة",answer:true},
+      {type:"tf",text:"الزراعة المتقدمة هي النشاط الاقتصادي الزراعي الذي يتم فيه إستخدام عناصر إنتاج عصرية ومتقدمة في إنتاج السلع الزراعية بالكم والنوع الذي يكفي لإشباع الرغبات البشرية",answer:true},
+      {type:"tf",text:"من خصائص النشاط الاقتصادي الزراعي الزراعة المتخلفة",answer:true},
+      {type:"tf",text:"الزراعة المتخلفة هي النشاط الاقتصادي الزراعي الذي يتم فيه إستخدام عناصر إنتاج تقليدية في إنتاج السلع الزراعية التقليدية لا تكفي لإشباع الرغبات البشرية",answer:true},
+      {type:"tf",text:"الزراعة النامية هي الزراعة المتخلفة التي بدأت تأخذ بأسباب التقدم عن طريق إستخدام التقدم التكنولوجي والاقتصادي في تطوير عناصر الإنتاج.",answer:true},
+      {type:"tf",text:"من خصائص النشاط الاقتصادي الزراعي الزراعة النامية",answer:true},
+      {type:"tf",text:"من خصائص وصفات النشاط الاقتصادي الزراعي التركيب التنافسي لصناعة الزراعة",answer:true},
+      {type:"tf",text:"من خصائص وصفات النشاط الاقتصادي الزراعي زيادة نسبة رأس المال الثابت في الزراعة",answer:true},
+      {type:"tf",text:"من خصائص وصفات النشاط الاقتصادي الزراعي موسمية الإنتاج الزراعي",answer:true},
+      {type:"tf",text:"من خصائص وصفات النشاط الاقتصادي الزراعي التخصص الإنتاجي الزراعي",answer:true},
+      {type:"tf",text:"من خصائص وصفات النشاط الاقتصادي الزراعي ضعف مرونة الطلب والعرض على المنتجات الزراعية",answer:true},
+      {type:"tf",text:"من خصائص وصفات النشاط الاقتصادي الزراعي كبر حجم التقلبات السعرية",answer:true},
+      {type:"tf",text:"من خصائص وصفات النشاط الاقتصادي الزراعي ضعف المرونة الدخلية للأنتجة الزراعية",answer:true},
+      // اختيار متعدد
+      {type:"mcq",text:"عرف الزلاقي الإدارة المزرعية بأنها",options:["أ- علم وفن وعمل اقتصادي","ب- ربح","ج- خسارة","د- كل ما سبق"],answer:0},
+      {type:"mcq",text:"من أهداف الإدارة المزرعية",options:["أ- تحقيق أقصى قدر من الأرباح","ب- تحقيق أقصى خسارة","ج- تحقيق أقل قدر من الأرباح","د- عدم تحقيق أرباح"],answer:0},
+      {type:"mcq",text:"من أهداف الإدارة المزرعية",options:["أ- رفع المستوى المعيشي للأسرة المزرعية","ب- خفض المستوى المعيشى للأسرة المزرعية","ج- ثبات المستوى المعيشى للأسرة المزرعية","د- لا شئ مما سبق"],answer:0},
+      {type:"mcq",text:"من أهداف الإدارة المزرعية",options:["أ- إستغلال المزرعة كبيئة للمعيشة","ب- إستغلال المزرعة كبيئة للعبث","ج- إستغلال المزرعة كبيئة للسطو","د- لا شئ مما سبق"],answer:0},
+      {type:"mcq",text:"تقسم المزارع وفقاً لنوع الإنتاج إلى",options:["أ- مزارع متخصصة","ب- مزارع متنوعة","ج- (أ، ب)","د- مزارع فضاء"],answer:2},
+      {type:"mcq",text:"تقسم المزارع وفقاً لنوع الإدارة إلى",options:["أ- المزارع ذات المدير المتفرغ","ب- المزارع ذات المدير غير المتفرغ","ج- مزارع بدون مدير","د- (أ، ب)"],answer:3},
+      {type:"mcq",text:"من أنواع المزارع ذات المدير المتفرغ مزارع",options:["أ- ذات الاكتفاء الذاتى","ب- تجارية","ج- عائلية","د- كل ما سبق"],answer:3},
+      {type:"mcq",text:"تقسم المزارع وفقاً لحجمها أو سعتها حسب",options:["أ- مساحة المزرعة","ب- القيمة الكلية للإنتاج","ج- السعة الإنتاجية للمزرعة","د- كل ما سبق"],answer:3},
+      {type:"mcq",text:"من أنسب المعايير التي يمكن أن تقاس بها حجم المزرعة",options:["أ- مساحة المزرعة","ب- السعة الإنتاجية","ج- العمالة الإنتاجية","د- كل ما سبق"],answer:1},
+      {type:"mcq",text:"يقصد بالتنظيم المزرعى",options:["أ- تقدير الاحتياجات الرأسمالية المطلوبة","ب- إختيار طرق وأساليب الإنتاج","ج- (أ، ب)","د- إختيار المزرعة"],answer:2},
+      {type:"mcq",text:"يقصد بالتنظيم المزرعى",options:["أ- وضع أسس اختيار العمالة المناسبة","ب- وضع السجلات","ج- تقدير الإيرادات","د- كل ما سبق"],answer:3},
+      {type:"mcq",text:"يقصد بالتنظيم المزرعى",options:["أ- وضع خطة للتخزين","ب- وخطة تسويقية","ج- ووضع خطط بديلة","د- كل ما سبق"],answer:3},
+      {type:"mcq",text:"من وظائف الرقابة المزرعية",options:["أ- تنفيذ الخطة الإنتاجية المزرعية","ب- إختيار العمالة اللازمة","ج- متابعة سير العمل","د- كل ما سبق"],answer:3},
+      {type:"mcq",text:"من وظائف الرقابة المزرعية",options:["أ- تنفيذ التعاقدات","ب- تقرير بالإنجاز اليومى","ج- تمويل العمليات المزرعية","د- كل ما سبق"],answer:3},
+      {type:"mcq",text:"من العوامل الاقتصادية والإجتماعية التي تلعب دوراً رئيسياً في تحديد الأنماط المزرعية",options:["أ- مدى توفر رأس المال","ب- الكثافة السكانية","ج- (أ، ب)","د- عدم توافر رأس المال"],answer:2},
+      {type:"mcq",text:"من العوامل الاقتصادية والإجتماعية التي تلعب دوراً رئيسياً في تحديد الأنماط المزرعية",options:["أ- أساليب التسويق","ب- التجار","ج- الشركات","د- كل ما سبق"],answer:0},
+      {type:"mcq",text:"من العوامل الاقتصادية والإجتماعية التي تلعب دوراً رئيسياً في تحديد الأنماط المزرعية",options:["أ- إحتياجات السوق","ب- أذواق المستهلكين","ج- (أ، ب)","د- لا شئ مما سبق"],answer:2},
+      {type:"mcq",text:"من خصائص النشاط الاقتصادي الزراعي",options:["أ- الزراعة المتقدمة","ب- الزراعة المتخلفة","ج- الزراعة النامية","د- كل ما سبق"],answer:3},
+      {type:"mcq",text:"من خصائص وصفات النشاط الاقتصادي الزراعي",options:["أ- التركيب التنافسي","ب- التركيب الحر","ج- التركيب المتعدد","د- كل ما سبق"],answer:0},
+      {type:"mcq",text:"من خصائص وصفات النشاط الاقتصادي الزراعي",options:["أ- موسمية الإنتاج الزراعى","ب- تخصص الإنتاج الزراعى","ج- (أ، ب)","د- لا شئ مما سبق"],answer:2},
+      {type:"mcq",text:"من خصائص وصفات النشاط الاقتصادي الزراعي",options:["أ- ضعف مرونة الطلب والعرض","ب- كبر حجم التقلبات السعرية","ج- ضعف المرونة الدخلية للأنتجة الزراعية","د- كل ما سبق"],answer:3},
+    ]
+  },
+  {
+    title: "اختبار الفصل الثاني",
+    icon: "📊",
+    questions: [
+      {type:"tf",text:"تتوقف كمية الإنتاج الزراعى على كمية ونوع الموارد المستخدمة في الإنتاج الزراعى",answer:true},
+      {type:"tf",text:"لا تتوقف كمية الإنتاج الزراعى على كمية ونوع الموارد المستخدمة في الإنتاج الزراعى",answer:false},
+      {type:"tf",text:"الدالة الإنتاجية هي علاقة رياضية بين عدة عوامل إنتاجية مستقلة، وبين عامل تابع هو الإنتاج",answer:true},
+      {type:"tf",text:"الدالة الإنتاجية ليست علاقة رياضية بين عدة عوامل إنتاجية مستقلة، وبين عامل تابع هو الإنتاج",answer:false},
+      {type:"tf",text:"الدالة الإنتاجية تأخذ الصورة التالية: ص= د( س1، س2 .................................سن)",answer:true},
+      {type:"tf",text:"قانون الغلة المتناقصة يسمى أحياناً بقانون النسب المتغيرة",answer:true},
+      {type:"tf",text:"قانون الغلة المتناقصة لا يسمى أحياناً بقانون النسب المتغيرة",answer:false},
+      {type:"tf",text:"قانون الغلة المتناقصة يصف ما يحدث للناتج من تغير في الكمية المستخدمة من أحد عناصر الانتاج مع بقاء الكمية المستخدمة من العناصر الانتاجية الأخرى ثابتة.",answer:true},
+      {type:"tf",text:"قانون الغلة المتناقصة لا يصف ما يحدث للناتج من تغير في الكمية المستخدمة من أحد عناصر الانتاج مع بقاء الكمية المستخدمة من العناصر الانتاجية الأخرى ثابتة",answer:false},
+      {type:"tf",text:"ينص قانون الغلة المتناقصة على انه 'في ظل فن انتاجي معطى إذا ما أضيفت وحدات متماثلة من عنصر الانتاج المتغير إلى الوحدات الثابتة فإن الانتاج يزداد بشكل متزايد، وبعد مدة معينة يأخذ الانتاج بالزيادة المتناقصة إلى أن يصل إلى قمة الانتاج وبعدها إذا أضيفت وحدات من المتغير فإن الانتاج سوف يتناقص بشكل مطلق",answer:true},
+      {type:"tf",text:"من أهم خواص وعمل قانون الغلة المتناقصة أن الناتج الكلي يتزايد على نحو متزايد حتى نقطة معينة ثم يبدأ هذا التزايد بالانخفاض",answer:true},
+      {type:"tf",text:"من أهم خواص وعمل قانون الغلة المتناقصة الناتج المتوسط والناتج الحدي فهما في بادئ الأمر يأخذان بالزيادة ويصلان إلى أقصى نقطة لهما ثم يميلان للانخفاض بعدها ويصبح الناتج الحدي سالباً",answer:true},
+      {type:"tf",text:"المرحلة الأولى من مراحل قانون تناقص الغلة تسمى بمرحلة تزايد الغلة",answer:true},
+      {type:"tf",text:"في المرحلة الأولى من مراحل قانون تناقص الغلة يزداد الناتج الكلي بمعدلات متزايدة",answer:true},
+      {type:"tf",text:"في المرحلة الأولى من مراحل قانون تناقص الغلة ينخفض الناتج الكلي بمعدلات متزايدة",answer:false},
+      {type:"tf",text:"في المرحلة الأولى من مراحل قانون تناقص الغلة يستخدم المتغير الثابت بكميات غير اقتصادية بالنسبة للمدخل المتغير.",answer:true},
+      {type:"tf",text:"المرحلة الثانية هي المرحلة التي يجب أن يتم فيها الانتاج",answer:true},
+      {type:"tf",text:"في المرحلة الثانية يصل الناتج المتوسط إلى أقصاه، والناتج الحدي يكون مساوياً للصفر.",answer:true},
+      {type:"tf",text:"المرحلة الثالثة هى مرحلة تناقص الغلة المطلق؛ حيث يكون الناتج الكلي متناقصاً",answer:true},
+      {type:"tf",text:"المرحلة الثالثة هى مرحلة تناقص الغلة المطلق؛ حيث يكون الناتج الكلي متزايد",answer:false},
+      {type:"tf",text:"في المرحلة الثالثة يكون الناتج الحدي سالباً",answer:true},
+      {type:"tf",text:"من أسس وقواعد تحقيق الكفاءة الاقتصادية في توزيع الموارد الإنتاجية الزراعية بين مختلف السلع الممكن إنتاجها مبدأ التخصص",answer:true},
+      {type:"tf",text:"من أسس وقواعد تحقيق الكفاءة الاقتصادية في توزيع الموارد الإنتاجية الزراعية بين مختلف السلع الممكن إنتاجها مبدأ الميزة النسبية",answer:true},
+      {type:"tf",text:"تتزايد الكفاءة الاقتصادية بزيادة حجم الوحدة الإنتاجية نتيجة للعوامل التكنولوجية",answer:true},
+      {type:"tf",text:"تتزايد الكفاءة الاقتصادية بزيادة حجم الوحدة الإنتاجية نتيجة للعوامل الاقتصادية",answer:true},
+      {type:"tf",text:"من أنواع المشروعات الزراعية من حيث إستخدامها للعوامل الإنتاجية المزرعية في تحقيق الكفاءة الاقتصادية مشاريع زراعية متنافسة",answer:true},
+      {type:"tf",text:"من أنواع المشروعات الزراعية من حيث إستخدامها للعوامل الإنتاجية المزرعية في تحقيق الكفاءة الاقتصادية مشاريع زراعية غير متنافسة",answer:true},
+      {type:"tf",text:"من أنواع المشروعات الزراعية من حيث إستخدامها للعوامل الإنتاجية المزرعية في تحقيق الكفاءة الاقتصادية مشاريع زراعية مكملة",answer:true},
+      {type:"tf",text:"المشاريع المزرعية المتنافسة هي المشاريع التي تتنافس في إستخدام العناصر الإنتاجية",answer:true},
+      {type:"tf",text:"المشاريع المزرعية المتنافسة هي المشاريع التى لا تتنافس في إستخدام العناصر الإنتاجية",answer:false},
+      {type:"tf",text:"مشاريع مزرعية غير متنافسة تلك المشاريع التي لا تتعارض فيما بينها في إستخدام العوامل الإنتاجية المزرعية",answer:true},
+      {type:"tf",text:"المشاريع المزرعية المكملة هي المشاريع التي تساعد بعضها البعض في إستخدام العناصر الإنتاجية",answer:true},
+      {type:"tf",text:"المشاريع المزرعية المكملة هي المشاريع التي لا تساعد بعضها البعض في إستخدام العناصر الإنتاجية",answer:false},
+      {type:"tf",text:"من أنواع المشروعات الزراعية من حيث إستخدامها للعوامل الإنتاجية المزرعية في تحقيق الكفاءة الاقتصادية المشاريع الزراعية المرتبطة",answer:true},
+      {type:"tf",text:"من المشاريع المزرعية المرتبطة مشاريع إنتاج القمح وتشمل (التبن – حبوب القمح)",answer:true},
+      {type:"tf",text:"من المشاريع المزرعية المرتبطة مشاريع إنتاج العجول وتشمل (اللبن – اللحم)",answer:true},
+      {type:"tf",text:"من المشاريع المزرعية المرتبطة مشاريع إنتاج الأغنام وتشمل (الصوف – اللحم)",answer:true},
+      // اختيار
+      {type:"mcq",text:"المرحلة الأولى من مراحل قانون تناقص الغلة تسمى بمرحلة",options:["أ- تزايد الغلة","ب- ثبات الغلة","ج- سالبية الغلة","د- لا شئ مما سبق"],answer:0},
+      {type:"mcq",text:"المرحلة الثانية هي المرحلة التي يجب أن يتم فيها",options:["أ- التكاليف","ب- الإنتاج","ج- الربح","د- لا شئ مما سبق"],answer:1},
+      {type:"mcq",text:"المرحلة الثالثة هى مرحلة تناقص الغلة",options:["أ- النسبى","ب- المتزايد","ج- المطلق","د- لا شئ مما سبق"],answer:2},
+      {type:"mcq",text:"من أسس وقواعد تحقيق الكفاءة الاقتصادية في توزيع الموارد الإنتاجية الزراعية بين مختلف السلع الممكن إنتاجها",options:["أ- مبدأ التخصص","ب- مبدأ عدم التخصص","ج- مبدأ التخصص المتوسط","د- لا شئ مما سبق"],answer:0},
+      {type:"mcq",text:"من أسس وقواعد تحقيق الكفاءة الاقتصادية في توزيع الموارد الإنتاجية الزراعية بين مختلف السلع الممكن إنتاجها",options:["أ- مبدأ الميزة المطلقة","ب- مبدأ الميزة النسبية","ج- مبدأ إنعدام الميزة","د- لا شئ مما سبق"],answer:1},
+      {type:"mcq",text:"تتزايد الكفاءة الاقتصادية بزيادة حجم الوحدة الإنتاجية نتيجة",options:["أ- للعوامل التكنولوجية","ب- للعوامل الاقتصادية","ج- (أ، ب)","د- العوامل الاجتماعية"],answer:2},
+      {type:"mcq",text:"من أنواع المشاريع الزراعية من حيث إستخدامها للعوامل الإنتاجية المزرعية في تحقيق الكفاءة الاقتصادية",options:["أ- مشاريع زراعية متنافسة","ب- مشاريع زراعية غير متنافسة","ج- مشاريع زراعية مكملة","د- كل ما سبق"],answer:3},
+    ]
+  },
+  {
+    title: "اختبار الفصل الثالث",
+    icon: "📋",
+    questions: [
+      {type:"tf",text:"التخطيط المزرعى هو عبارة عن رسم السياسة التي يتبعها المنظم لتحقيق هدفه",answer:true},
+      {type:"tf",text:"التخطيط المزرعى هو عبارة عن تطبيق السياسة التي يتبعها المنظم لتحقيق هدفه",answer:false},
+      {type:"tf",text:"يتضمن التخطيط المزرعى وضع الخطة المزرعية وتحديد المشروعات الزراعية الرئيسية والثانوية المتكاملة وإستبعاد المشروعات المتنافسة",answer:true},
+      {type:"tf",text:"يتضمن التخطيط المزرعى وضع الخطة المزرعية وتحديد المشروعات الزراعية الرئيسية والثانوية المتكاملة وإدراج المشروعات المتنافسة",answer:false},
+      {type:"tf",text:"يتضمن التخطيط المزرعى تنظيم تتابع هذه المشروعات الزراعية بما يكفل سير العمل",answer:true},
+      {type:"tf",text:"يتضمن التخطيط المزرعى وضع الخطوات التفصيلية الكفيلة بتنفيذ الخطة المزرعية بسهولة وانتظام",answer:true},
+      {type:"tf",text:"يتضمن التخطيط المزرعى تقدير نوع ومدى الآلات والمعدات التي ستستخدم في المزرعة",answer:true},
+      {type:"tf",text:"من أهمية التخطيط المزرعى إتاحة الفرصة مقدماً لتقدير الدخول والإيرادات والمصروفات المحتملة",answer:true},
+      {type:"tf",text:"من أهمية التخطيط المزرعى تحديد كمية ونوعية الاحتياجات الضرورية للمشروعات الزراعية",answer:true},
+      {type:"tf",text:"من أهمية التخطيط المزرعى معرفة مواعيد العمليات الزراعية",answer:true},
+      {type:"tf",text:"من مكونات التنظيم المزرعي أو التخطيط المزرعي المزرعة من حيث الموقع والسعة أو الحجم وشكلها وحدودها",answer:true},
+      {type:"tf",text:"من مكونات التنظيم المزرعي أو التخطيط المزرعي طبيعة الأسلوب المزرعي",answer:true},
+      {type:"tf",text:"من مكونات التنظيم المزرعي أو التخطيط المزرعي تقدير الغلة على أساس جملة الإنتاج وعلى أساس وحدة كل مشروع",answer:true},
+      {type:"tf",text:"من مكونات التنظيم المزرعي أو التخطيط المزرعي مجالات إستعمال الناتج من المشروعات الزراعية",answer:true},
+      {type:"tf",text:"من مكونات التنظيم المزرعي أو التخطيط المزرعي أهداف السياسة المزرعية وطبيعتها",answer:true},
+      {type:"tf",text:"من مكونات التنظيم المزرعي أو التخطيط المزرعي ملاءمة المباني والآلات للمشروعات الزراعية",answer:true},
+      {type:"tf",text:"من مكونات التنظيم المزرعي أو التخطيط المزرعي مكونات الطابع المزرعي وتتضمن أشكال الحقول",answer:true},
+      {type:"tf",text:"من مكونات التنظيم المزرعي أو التخطيط المزرعي إجمالي الدخل على أساس مستوى المزرعة",answer:true},
+      {type:"tf",text:"من مكونات التنظيم المزرعي أو التخطيط المزرعي إجمالي التكاليف المزرعية ككل للمشروعات الزراعية",answer:true},
+      {type:"tf",text:"من مكونات التنظيم المزرعي أو التخطيط المزرعي مقدار رأس المال ورأس المال المزرعي المستثمر",answer:true},
+      {type:"tf",text:"من المحددات التي تؤثر على وضع وتصميم الخطة المزرعية التنوع في الإنتاج المزرعي",answer:true},
+      {type:"tf",text:"من المحددات التي تؤثر على وضع وتصميم الخطة المزرعية عدم التنوع في الإنتاج المزرعي",answer:false},
+      {type:"tf",text:"من المحددات التي تؤثر على وضع وتصميم الخطة المزرعية الأسلوب المزرعي المحلي",answer:true},
+      {type:"tf",text:"من المحددات التي تؤثر على وضع وتصميم الخطة المزرعية الأسلوب المزرعي الدولى",answer:false},
+      {type:"tf",text:"من المحددات التي تؤثر على وضع وتصميم الخطة المزرعية محدودية الأنماط المزرعية",answer:true},
+      {type:"tf",text:"من المحددات التي تؤثر على وضع وتصميم الخطة المزرعية تعدد الأنماط المزرعية",answer:true},
+      {type:"tf",text:"من المحددات التي تؤثر على وضع وتصميم الخطة المزرعية حجم المزرعة",answer:true},
+      {type:"tf",text:"من المحددات التي تؤثر على وضع وتصميم الخطة المزرعية الناتج الزراعي الحقلي (النباتي) المثالي",answer:true},
+      {type:"tf",text:"من المحددات التي تؤثر على وضع وتصميم الخطة المزرعية الناتج الزراعي الحيواني المثالي",answer:true},
+      {type:"tf",text:"من المحددات التي تؤثر على وضع وتصميم الخطة المزرعية زيادة الناتج الزراعي المحلي",answer:true},
+      {type:"tf",text:"من المحددات التي تؤثر على وضع وتصميم الخطة المزرعية التوزيع النسبي للمساحات",answer:true},
+      {type:"tf",text:"من المحددات التي تؤثر على وضع وتصميم الخطة المزرعية التخصص في الإنتاج الزراعي",answer:true},
+      {type:"tf",text:"من المحددات التي تؤثر على وضع وتصميم الخطة المزرعية عدم التخصص في الإنتاج الزراعي",answer:false},
+      {type:"tf",text:"من المحددات الرئيسية التي تؤثر على وضع الخطة المزرعية المحددات التشريعية",answer:true},
+      {type:"tf",text:"من المحددات الرئيسية التي تؤثر على وضع الخطة المزرعية محددات عناصر الإنتاج (الموارد المتاحة لدى المزرعة)",answer:true},
+      {type:"tf",text:"من المحددات الرئيسية التي تؤثر على وضع الخطة المزرعية المحددات الطبيعية",answer:true},
+      {type:"tf",text:"يتوقف نجاح الخطة المزرعية على توافر هدف تخطيطي واضح ومحدد",answer:true},
+      {type:"tf",text:"يتوقف نجاح الخطة المزرعية على توافر بيانات ومعلومات كافية ودقيقة",answer:true},
+      {type:"tf",text:"يتوقف نجاح الخطة المزرعية على توافر إدراك كافي بالعلاقات",answer:true},
+      {type:"tf",text:"يتوقف نجاح الخطة المزرعية على توافر خطة مرنة تلاءم أي تغيرات قد تحدث مستقبلاً في الظروف المزرعية",answer:true},
+      {type:"tf",text:"يتوقف نجاح الخطة المزرعية على عدم توافر خطة مرنة تلاءم أي تغيرات قد تحدث مستقبلاً في الظروف المزرعية",answer:false},
+      {type:"tf",text:"من أهم الأساليب والأدوات التحليلية المستخدمة في التخطيط المزرعي التحليل الحدى",answer:true},
+      {type:"tf",text:"من أهم الأساليب والأدوات التحليلية المستخدمة في التخطيط المزرعي الميزانية المزرعية",answer:true},
+      {type:"tf",text:"من أهم الأساليب والأدوات التحليلية المستخدمة في التخطيط المزرعي البرمجة الخطية",answer:true},
+      {type:"tf",text:"الميزانية الكلية للمزرعة وهي تخص كامل المشروع أو المزرعة",answer:true},
+      {type:"tf",text:"الميزانية الجزئية للمزرعة وهي تهتم بجزء صغير من النشاط المزرعي",answer:true},
+      {type:"tf",text:"يتطلب إستخدام البرمجة الخطية توافر عدة خصائص منها أن يكون للمشكلة موضع الدراسة هدف محدد",answer:true},
+      {type:"tf",text:"من طرق الحل المختلفة لمسألة البرمجة الخطية الطريقة البيانية",answer:true},
+      {type:"tf",text:"من طرق الحل المختلفة لمسألة البرمجة الخطية الطريقة الجبرية",answer:true},
+      {type:"tf",text:"من طرق الحل المختلفة لمسألة البرمجة الخطية طريقة المتجهات",answer:true},
+      {type:"tf",text:"من طرق الحل المختلفة لمسألة البرمجة الخطية طريقة السمبلكسي البسيطة",answer:true},
+      {type:"tf",text:"من طرق الحل المختلفة لمسألة البرمجة الخطية طريقة السمبلكسي بإدخال الأنشطة التخيلية",answer:true},
+      {type:"tf",text:"يمكن حل مسألة البرمجة الخطية بيانياً (الرسم البياني) إذا كانت المسألة مكونة من نشاطين إنتاجيين فقط",answer:true},
+      {type:"tf",text:"يمكن حل مسألة البرمجة الخطية بيانياً (الرسم البياني) إذا كانت المسألة مكونة من أكثر من نشاطين إنتاجيين",answer:false},
+      {type:"tf",text:"يمكن حل مسألة البرمجة الخطية بطريقة السمبلكس إذا كانت المسألة مكونة من أكثر من نشاطين إنتاجيين",answer:true},
+      // اختيار
+      {type:"mcq",text:"من أهم الأساليب والأدوات التحليلية المستخدمة في التخطيط المزرعي",options:["أ- التحليل الحدى","ب- التحليل الكلى","ج- التحليل المتوسط","د- كل ما سبق"],answer:0},
+      {type:"mcq",text:"من أهم الأساليب والأدوات التحليلية المستخدمة في التخطيط المزرعي",options:["أ- التحليل الكلى","ب- الميزانية المزرعية","ج- التحليل المتوسط","د- كل ما سبق"],answer:1},
+      {type:"mcq",text:"من أهم الأساليب والأدوات التحليلية المستخدمة في التخطيط المزرعي",options:["أ- التحليل المتوسط","ب- التحليل المتوسط","ج- البرمجة الخطية","د- كل ما سبق"],answer:2},
+      {type:"mcq",text:"من أهم الأساليب والأدوات التحليلية المستخدمة في التخطيط المزرعي",options:["أ- البرمجة الخطية","ب- الميزانية المزرعية","ج- التحليل الحدى","د- كل ما سبق"],answer:3},
+      {type:"mcq",text:"يتوقف نجاح الخطة المزرعية على توافر",options:["أ- هدف تخطيطي واضح ومحدد","ب- بيانات ومعلومات","ج- (أ، ب)","د- لا شئ مما سبق"],answer:2},
+      {type:"mcq",text:"يتوقف نجاح الخطة المزرعية على توافر",options:["أ- إدراك كافي بالعلاقات","ب- خطة مرنة تلائم التغيرات المستقبلية","ج- خطة غير مرنة","د- (أ، ب)"],answer:3},
+      {type:"mcq",text:"من المحددات الرئيسية التي تؤثر على وضع الخطة المزرعية",options:["أ- المحددات التشريعية","ب- المحددات الإجتماعية","ج- المحددات الإنسانية","د- كل ما سبق"],answer:0},
+      {type:"mcq",text:"من المحددات التي تؤثر على وضع وتصميم الخطة المزرعية",options:["أ- ثبات الأنماط المزرعية","ب- تعدد الأنماط المزرعية","ج- محدودية الأنماط المزرعية","د- كل ما سبق"],answer:1},
+      {type:"mcq",text:"من المحددات التي تؤثر على وضع وتصميم الخطة المزرعية",options:["أ- التنوع في الإنتاج المزرعي","ب- ثبات الإنتاج المزرعى","ج- عدم وجود إنتاج","د- كل ما سبق"],answer:0},
+      {type:"mcq",text:"من أنواع الميزانية المزرعية",options:["أ- الميزانية الكلية","ب- الميزانية الجزئية","ج- (أ، ب)","د- أجور العمال"],answer:2},
+      {type:"mcq",text:"يتطلب إستخدام البرمجة الخطية توافر عدة خصائص منها",options:["أ- وجود مشكلة وهدف للمشكلة","ب- وجود محددات أو قيود","ج- تعدد البدائل (الأساليب)","د- كل ما سبق"],answer:3},
+    ]
+  },
+  {
+    title: "اختبار الفصل الرابع",
+    icon: "🏡",
+    questions: [
+      {type:"tf",text:"من أسباب نجاح إختيار المزرعة الأسباب الاقتصادية والأسباب المعيشية",answer:true},
+      {type:"tf",text:"أرض المزرعة من الأصول الكبيرة الثمن والتي يصعب نقلها أو بيعها بسهولة",answer:true},
+      {type:"tf",text:"أرض المزرعة من الأصول الصغيرة الثمن والتي يسهل نقلها أو بيعها بسهولة",answer:false},
+      {type:"tf",text:"المزرعة يصعب تغيير سعتها بالزيادة أو النقصان",answer:true},
+      {type:"tf",text:"أرض المزرعة يسهل تغيير سعتها بالزيادة أو النقصان",answer:false},
+      {type:"tf",text:"كبر حجم أرض المزرعة وسعرها وارتفاعه بالمقارنة بغيرها من عناصر الانتاج",answer:true},
+      {type:"tf",text:"من أهم الاعتبارات التي يجب مراعاتها عند شراء المزرعة الاعتبارات الشخصية",answer:true},
+      {type:"tf",text:"من أهم الاعتبارات التي يجب مراعاتها عند شراء المزرعة الاعتبارات الاقتصادية",answer:true},
+      {type:"tf",text:"من أهم الاعتبارات التي يجب مراعاتها عند شراء المزرعة اعتبارات معاينة المزرعة",answer:true},
+      {type:"tf",text:"يتضمن تثمين المزرعة تقييم المزرعة مالياً وفق قوتها الكسبية بالدرجة الأولى ثم وفقاً لطقس المنطقة وخواص التربة.",answer:true},
+      {type:"tf",text:"يتضمن تثمين المزرعة تقييم المزرعة مالياً وفق قوتها الكسبية بالدرجة الأولى ثم وفقاً للترتيب المزرعي من مباني وقطع أراضي متصلة أو منفصلة ويقل سعرها إذا كانت منفصلة ووجود مبانى أو إنشاءات عليها أو حيوانات.",answer:true},
+      {type:"tf",text:"يتضمن تثمين المزرعة تقييم المزرعة مالياً وفق قوتها الكسبية بالدرجة الأولى ثم وفقاً لموقع المزرعة وسعتها.",answer:true},
+      {type:"tf",text:"يتضمن تثمين المزرعة تقييم المزرعة مالياً وفق قوتها الكسبية بالدرجة الأولى ثم وفقاً للمسكن والمباني والحيوانات والمنشآت.",answer:true},
+      {type:"tf",text:"يتضمن تثمين المزرعة تقييم المزرعة مالياً وفق قوتها الكسبية بالدرجة الأولى ثم وفقاً للمعدات الزراعية والآلات.",answer:true},
+      {type:"tf",text:"يتضمن تثمين المزرعة تقييم المزرعة مالياً وفق قوتها الكسبية بالدرجة الأولى ثم وفقاً للدخل المزرعي وتكاليف الانتاج.",answer:true},
+      {type:"tf",text:"يتضمن تثمين المزرعة تقييم المزرعة مالياً وفق قوتها الكسبية بالدرجة الأولى ثم وفقاً للعرض العمالى ووفرته وتكاليف العمل اليومي",answer:true},
+      {type:"tf",text:"من العوامل المؤثرة على تثمين المزرعة قرب أو بعد الأرض من المدن.",answer:true},
+      {type:"tf",text:"من العوامل المؤثرة على تثمين المزرعة حقوق الارتفاق أو الضرائب والالتزامات المالية والقروض المرتبطة بالأرض.",answer:true},
+      {type:"tf",text:"من العوامل المؤثرة على تثمين المزرعة وجود حدائق وأشجار بالمزرعة.",answer:true},
+      {type:"tf",text:"من العوامل المؤثرة على تثمين المزرعة عوامل المضاربة التى تؤدي لزيادة سعر المزرعة.",answer:true},
+      {type:"tf",text:"من العوامل المؤثرة على تثمين المزرعة أثمان المزارع الأخرى المماثلة تعتبر مؤشر لثمن الأرض.",answer:true},
+      {type:"tf",text:"من العوامل المؤثرة على تثمين المزرعة الظروف الاجتماعية والتموينية والحيازة والظروف الصحية والثقافية والأمنية والعمرانية والترويجية",answer:true},
+      {type:"tf",text:"من العوامل المؤثرة على تثمين المزرعة الجيرة ومعاملة الأهالى والأمن في المنطقة",answer:true},
+      {type:"tf",text:"من طرق تثمين المزارع طريقة الثمن بالمثل",answer:true},
+      {type:"tf",text:"من طرق تثمين المزارع طريقة الثمن الكسبى",answer:true},
+      {type:"tf",text:"من طرق تثمين المزارع طريقة الثمن الجردى",answer:true},
+      {type:"tf",text:"طريقة الثمن المثلى أو طريقة المقارنة: هو ثمن المزارع العادية منسوباً للفائدة السائدة على القروض الزراعية طويلة الأجل والتى يتم بيعها حديثاً وفق العرض والطلب",answer:true},
+      {type:"tf",text:"طريقة الثمن الكسبي: هو الدخل المتولد من رأس المال المزرعي تحت الظروف المزرعية",answer:true},
+      {type:"tf",text:"طريقة الثمن الجردى يمثل القيمة الحالية للمزرعة ويحصل عليه بعمل قائمة جرد لجميع الموجودات من أصول ثابتة ومتداولة وتقدير قيمتها",answer:true},
+      {type:"tf",text:"طريقة الثمن الفعلى وهو الثمن الذي تتم به صفقة البيع والشراء ويحدد في ضوء الثمن الجردي والمثلى وهو الحد الأدنى الذي يرتضيه المشتري",answer:true},
+      {type:"tf",text:"طريقة الثمن الضريبي وفي هذه الطريقة يقدر ثمن الفدان من الأرض الزراعية بعشرة أمثال القيمة الإيجارية أو بسبعين ضعف الضريبة العقارية المربوطة على الأرض",answer:true},
+      {type:"tf",text:"من طرق تثمين المزارع طريقة تقدير ثمن الأرض المستصلحة",answer:true},
+      // اختيار
+      {type:"mcq",text:"من أسباب نجاح إختيار المزرعة",options:["أ- الأسباب الاقتصادية","ب- الأسباب المعيشية","ج- الأسباب السياسية","د- (أ، ب)"],answer:3},
+      {type:"mcq",text:"أهم الاعتبارات التي يجب مراعاتها عند شراء المزرعة",options:["أ- الاعتبارات الشخصية","ب- الاعتبارات الاقتصادية","ج- معاينة المزرعة","د- (أ، ب)"],answer:3},
+      {type:"mcq",text:"يتضمن تثمين المزرعة تقييم المزرعة مالياً وفق قوتها الكسبية بالدرجة الأولى ثم وفقاً",options:["أ- لطقس المنطقة وخواص التربة","ب- لدرجات الحرارة فقط","ج- لكمية المطر فقط","د- عنصر العمل فقط"],answer:0},
+      {type:"mcq",text:"يتضمن تثمين المزرعة تقييم المزرعة مالياً وفق قوتها الكسبية بالدرجة الأولى ثم وفقاً",options:["أ- لموقع المزرعة وسعتها","ب- للمسكن والمبانى والحيوانات","ج- (أ، ب)","د- لكمية المطر فقط"],answer:2},
+      {type:"mcq",text:"يتضمن تثمين المزرعة تقييم المزرعة مالياً وفق قوتها الكسبية بالدرجة الأولى ثم وفقاً",options:["أ- للمعدات والآلات الزراعية","ب- للدخل المزرعى","ج- للعرض العمالى","د- كل ما سبق"],answer:3},
+      {type:"mcq",text:"من العوامل المؤثرة على تثمين المزرعة",options:["أ- قرب أو بعد الأرض من المدن","ب- الالتزامات المالية","ج- (أ، ب)","د- عدد السكان"],answer:2},
+      {type:"mcq",text:"من العوامل المؤثرة على تثمين المزرعة",options:["أ- وجود حدائق وأشجار بالمزرعة","ب- عوامل المضاربة","ج- أثمان المزارع الأخرى","د- كل ما سبق"],answer:3},
+      {type:"mcq",text:"من العوامل المؤثرة على تثمين المزرعة",options:["أ- الظروف الاجتماعية","ب- الجيرة ومعاملة الأهالى","ج- (أ، ب)","د- عدد السكان"],answer:2},
+      {type:"mcq",text:"من طرق تثمين المزارع",options:["أ- طريقة الثمن بالمثل","ب- طريقة ثمن الأشجار بالمزرعة","ج- طريقة ثمن الحيوانات بالمزرعة","د- لا شئ مما سبق"],answer:0},
+      {type:"mcq",text:"من طرق تثمين المزارع",options:["أ- طريقة ثمن الشجر بالمزرعة","ب- طريق الثمن الجردى","ج- طريقة ثمن العجول بالمزرعة","د- لا شئ مما سبق"],answer:1},
+      {type:"mcq",text:"من طرق تثمين المزرعة",options:["أ- طريقة أجر العمال","ب- طريقة ثمن الشجر بالمزرعة","ج- طريقة الثمن الكسبى","د- لا شئ مما سبق"],answer:2},
+      {type:"mcq",text:"من طرق تثمين المزرعة",options:["أ- طريقة الثمن الفعلى","ب- طريقة الثمن الكسبى","ج- طريقة الثمن الجردى","د- كل ما سبق"],answer:3},
+      {type:"mcq",text:"من طرق تثمين المزارع",options:["أ- طريقة الثمن الضريبى","ب- طريقة ثمن الأرض المستصلحة","ج- (أ ب)","د- طريقة ثمن الأرض البور"],answer:2},
+      {type:"mcq",text:"طريقة الثمن الضريبة لتثمين المزارع تمثل",options:["أ- عشرة أمثال القيمة الإيجارية","ب- خمسة أمثال القيمة الإيجارية","ج- خمسة عشر مثل القيمة الإيجارية","د- لا شئ مما سبق"],answer:0},
+      {type:"mcq",text:"طريقة الثمن الضريبة لتثمين المزارع تمثل",options:["أ- خمسة وسبعين ضعف القيمة العقارية","ب- سبعين ضعف القيمة العقارية","ج- ثمانين ضعف القيمة العقارية","د- لا شئ مما سبق"],answer:1},
+    ]
+  },
+  {
+    title: "اختبار الفصل الخامس",
+    icon: "🔍",
+    questions: [
+      {type:"tf",text:"تعد الرقابة المزرعية إحدى العمليات الإدارية الهامة",answer:true},
+      {type:"tf",text:"تعد الرقابة المزرعية إحدى العمليات التنظيمية الهامة",answer:false},
+      {type:"tf",text:"الرقابة المزرعية تمارس بعد ممارسة الوظائف الأخرى كالتخطيط والتنظيم والقيادة واتخاذ القرارات",answer:true},
+      {type:"tf",text:"الرقابة تمارس قبل ممارسة الوظائف الأخرى كالتخطيط والتنظيم والقيادة واتخاذ القرارات",answer:false},
+      {type:"tf",text:"الهدف الرئيسي من الرقابة المزرعية هو التأكد من أن الأعمال تسير في اتجاه الهدف بصورة مرضية",answer:true},
+      {type:"tf",text:"ينحصر مجال الرقابة المزرعية في الحصول على ما يلزم من العمال وطرق معاملتهم.",answer:true},
+      {type:"tf",text:"ينحصر مجال الرقابة المزرعية في توفير رأس المال النقدي اللازم لتمويل العمليات المزرعية.",answer:true},
+      {type:"tf",text:"ينحصر مجال الرقابة المزرعية في تسجيل الحسابات المزرعية وحفظ السجلات المزرعية.",answer:true},
+      {type:"tf",text:"ينحصر مجال الرقابة المزرعية في متابعة الانتاج من المزرعة.",answer:true},
+      {type:"tf",text:"ينحصر مجال الرقابة المزرعية في تسويق الزروع الناتجة وشراء مستلزمات الانتاج.",answer:true},
+      {type:"tf",text:"ينحصر مجال الرقابة المزرعية في مراعاة المسائل التشريعية.",answer:true},
+      {type:"tf",text:"ينحصر مجال الرقابة المزرعية في إعداد التقارير.",answer:true},
+      {type:"tf",text:"هناك معايير أخرى تساعد المدير على الرقابة المزرعية ومن أهمها المعايير الاقتصادية والمعايير المالية",answer:true},
+      {type:"tf",text:"تضم معايير اقتصادية للمواد الداخلة في الانتاج مثل السماد والعمالة وعلاقتها بالانتاج النهائي",answer:true},
+      {type:"tf",text:"المعايير المالية تضم التكاليف والأسعار والإيرادات ومعايير التقييم المالى مثل العائد على رأس المال",answer:true},
+      {type:"tf",text:"المعايير الاقتصادية تضم التكاليف والأسعار والإيرادات ومعايير التقييم المالى مثل العائد على رأس المال",answer:false},
+      {type:"tf",text:"تضم معايير المالية المواد الداخلة في الانتاج مثل السماد والعمالة وعلاقتها بالانتاج النهائي",answer:false},
+      {type:"tf",text:"من أهم الأسباب التي تدعو المزارع إلى الاهتمام بمشروعات الانتاج الحيوانى زيادة الربح والدخل المزرعي.",answer:true},
+      {type:"tf",text:"من أهم الأسباب التي تدعو المزارع إلى الاهتمام بمشروعات الانتاج الحيوانى استغلال وقت فراغ المزارع للاستثمار الأمثل.",answer:true},
+      {type:"tf",text:"من أهم الأسباب التي تدعو المزارع إلى الاهتمام بمشروعات الانتاج الحيوانى استخدام مخلفات المزرعة كعلف للحيوانات.",answer:true},
+      {type:"tf",text:"من أهم الأسباب التي تدعو المزارع إلى الاهتمام بمشروعات الانتاج الحيوانى الحصول على مصدر رخيص للأسمدة.",answer:true},
+      {type:"tf",text:"من أهم الأسباب التي تدعو المزارع إلى الاهتمام بمشروعات الانتاج الحيوانى تنظيم الدخل المزرعي طول العام",answer:true},
+      {type:"tf",text:"من المراحل التى يمر بها إعداد التقارير المزرعية تحديد الموضوع المراد إعداد التقرير له.",answer:true},
+      {type:"tf",text:"من المراحل التى يمر بها إعداد التقارير المزرعية توضيح الهدف الأساسي للموضوع المرغوب إعداد التقرير عنه",answer:true},
+      {type:"tf",text:"من المراحل التى يمر بها إعداد التقارير المزرعية تحديد البيانات والمعلومات التى يتطلبها إعداد التقرير.",answer:true},
+      {type:"tf",text:"من المراحل التى يمر بها إعداد التقارير المزرعية تحديد طرق جمع البيانات والمعلومات عن طريق الاستبيان ومن واقع سجلات وإحصائيات منشورة وغير منشورة.",answer:true},
+      {type:"tf",text:"من المراحل التى يمر بها إعداد التقارير المزرعية استعراض البيانات واختيار المطلوب منها.",answer:true},
+      {type:"tf",text:"من المراحل التى يمر بها إعداد التقارير المزرعية اختيار طريقة تحليل البيانات.",answer:true},
+      {type:"tf",text:"من المراحل التى يمر بها إعداد التقارير المزرعية تحديد أيسر الطرق للعرض بعد تحليل البيانات واستخراج النتائج.",answer:true},
+      // اختيار
+      {type:"mcq",text:"من المعايير الأخرى التى تساعد المدير على الرقابة",options:["أ- المعايير الاقتصادية","ب- المعايير المالية","ج- المعايير الدولية","د- (أ، ب)"],answer:3},
+      {type:"mcq",text:"تتعدد التقارير والسجلات المزرعية داخل المزرعة فمنها",options:["أ- التقارير الإيضاحية","ب- تقارير بالمحاصيل المزمع زراعتها","ج- تقارير ملحقة","د- كل ما سبق"],answer:3},
+      {type:"mcq",text:"من المراحل التى يمر بها إعداد التقارير المزرعية اختيار",options:["أ- طريقة تحليل البيانات","ب- أيسر طرق عرض النتائج","ج- (أ، ب)","د- طريقة الرسم"],answer:2},
+      {type:"mcq",text:"من المراحل التى يمر بها إعداد التقارير المزرعية",options:["أ- تحديد البيانات والمعلومات المزرعية","ب- مساحة المزرعة","ج- ربح المزرعة","د- لا شئ مما سبق"],answer:0},
+      {type:"mcq",text:"من المراحل التى يمر بها إعداد التقارير المزرعية",options:["أ- الرسم البيانى","ب- جمع البيانات والمعلومات","ج- المساحة","د- لا شئ مما سبق"],answer:1},
+    ]
+  },
+  {
+    title: "اختبار الفصل السادس",
+    icon: "📜",
+    questions: [
+      {type:"tf",text:"تعنى حيازة الأراضى الزراعية باللغة الدارجة وضع اليد على الموارد الأرضية بأى صفة من الصفات سواء أكان واضع اليد عليها مالكاً أو مستأجراً",answer:true},
+      {type:"tf",text:"تعريف حق الملكية: تعرف الملكية في القانون المصرى بأنها حق المالك في الانتفاع بما يملكه ويتصرف فيه بطريقة مطلقة",answer:true},
+      {type:"tf",text:"تعرف حق الملكية أيضاً بأنه حق بمقتضاه يوضع شئ بصفة دائمة تحت إرادة شخص يكون له دون غيره أن ينتفع ويتصرف فيه بكل التصرفات في حدود القانون",answer:true},
+      {type:"tf",text:"للملكية خصائص رئيسية هى أنها حق عينى وحق مطلق وحق مقصور على المالك وحق دائم",answer:true},
+      {type:"tf",text:"للملكية نوعان ملكية مفرز وملكية على الشيوع",answer:true},
+      {type:"tf",text:"الملكية المفرزة فهى أن يكون الشخص مالكاً لعين معينة بتمامها وبالتحديد لا يشاركه أحد لا يتقيد بحقوق لغيره فيها",answer:true},
+      {type:"tf",text:"الملكية على الشيوع فهى أن يتعدد مالك الشئ الواحد دون أن يحدد نصيب كل من الشركاء فيه بحدود معينة",answer:true},
+      {type:"tf",text:"للملكية عنصران أساسيان هما حق الاستعمال والاستغلال وحق التصرف",answer:true},
+      {type:"tf",text:"يقصد بحق الاستعمال والاستغلال الحصول على إيراد من استعمال موضوع الملكية كإستغلال الأرض بتأجيرها والحصول على إيجارها",answer:true},
+      {type:"tf",text:"حق التصرف يقصد به جميع أوجه التصرف كالرهن الرسمى والرهن الحيازى والاختصاص والبيع والمقايضة والهبة والوقف",answer:true},
+      {type:"tf",text:"الرهن الحيازى فهو حق بمقتضاه تخرج العين من حيازة مالكها وتنتقل إلى حيازة الدائن (المرتهن)",answer:true},
+      {type:"tf",text:"الهبة هى تبرع منجز تنتقل به ملكية المال الموهوب إلى الموهوب له",answer:true},
+      {type:"tf",text:"تنتقل الملكية بأسباب أربعة رئيسية هى الاستيلاء وإرادياً بالعقود كما في حالة البيع والهبة والميراث والوصية كما تنتقل بغير الإرادة كما في حالة الشفعة والامتلاك بمضى المدة كما قد تنتقل الملكية بالالتصاق",answer:true},
+      {type:"tf",text:"الاستيلاء هو تملك المال الذي لا مالك له كالعهد والأشياء السائبة",answer:true},
+      {type:"tf",text:"تنتقل الملكية إرادياً بالعقود في حالات البيع حيث يتم الاتفاق عادة بالتراضي أى بالإيجاب والقبول بين المتعاقدين",answer:true},
+      {type:"tf",text:"هناك طريقتان للحيازة المستأجرة الأولى الإيجار بطريق النقد، والثانية الإيجار بطريق المزارعة",answer:true},
+      {type:"tf",text:"لا يجوز أن تزيد قيمة الأجرة السنوية للأرض الزراعية عن سبعة أمثال الضريبة العقارية السارية",answer:true},
+      {type:"tf",text:"تعتبر خريطة المزرعة من الأدوات الهامة التي يستند إليها مدير المزرعة في التعرف على المزرعة من كافة الجوانب",answer:true},
+      {type:"tf",text:"يدون في سجل ملخص إنتاج الزروع النباتية عدد الأفدنة المنزرعة من كل محصول وكذلك كمية كل محصول منتج في السنوات المختلفة",answer:true},
+      {type:"tf",text:"تشتمل سجلات إنتاج الزروع الحيوانية على العديد من الأنواع التي تغطى كافة جوانب الإنتاج الحيوانى",answer:true},
+      // اختيار
+      {type:"mcq",text:"يمكن تقسيم حيازة الأراضى الزراعية في مصر إلى",options:["أ- الحيازة المملوكة","ب- الحيازة المستأجرة","ج- الحيازة البور","د- (أ، ب)"],answer:3},
+      {type:"mcq",text:"للملكية خصائص رئيسية هى أنها",options:["أ- حق عينى وحق مطلق","ب- حق مقصور على المالك","ج- حق دائم","د- كل ما سبق"],answer:3},
+      {type:"mcq",text:"للملكية نوعان",options:["أ- ملكية مفرز","ب- ملكية على الشيوع","ج- (أ، ب)","د- ملكية على الأرض"],answer:2},
+      {type:"mcq",text:"للملكية عنصران أساسيان هما",options:["أ- حق الاستعمال والاستغلال","ب- حق التصرف","ج- (أ، ب)","د- لا يوجد حق"],answer:2},
+      {type:"mcq",text:"تنتقل الملكية بأسباب رئيسية هى",options:["أ- الاستيلاء","ب- وإرادياً","ج- وبالعقود","د- كل ما سبق"],answer:3},
+      {type:"mcq",text:"هناك طريقتان للحيازة المستأجرة",options:["أ- الأولى الإيجار بطريق النقد","ب- الثانية الإيجار بطريق المزارعة","ج- (أ، ب)","د- لا شئ مما سبق"],answer:2},
+    ]
+  },
+  {
+    title: "اختبار الفصل السابع",
+    icon: "📐",
+    questions: [
+      {type:"tf",text:"يمكن أن يستخدم في التعامل مع مشاكل تحقيق الأمثلية نموذج البرمجة الخطية",answer:true},
+      {type:"tf",text:"من شروط نموذج البرمجة الخطية تعظيم أو تدنية النشاط المستهدف",answer:true},
+      {type:"tf",text:"من شروط البرمجة الخطية وجود قيود على إمكانية أو درجة تحقيق الهدف وهذه القيود يمكن التعبير عنها في صورة دوال خطية",answer:true},
+      {type:"tf",text:"شرط عدم السالبية من شروط البرمجة الخطية تحقيق",answer:true},
+      {type:"tf",text:"الموقف الذي يتم فيه استخدام نموذج البرمجة الخطية محدودية الموارد",answer:true},
+      {type:"tf",text:"لا مجال لاستخدام نموذج البرمجة الخطية إذا كانت هناك فرصة استخدام وحيدة للموارد",answer:true},
+      {type:"tf",text:"يمكن إستخدام نموذج البرمجة الخطية كمعيار المفاضلة",answer:true},
+      {type:"tf",text:"يمكن استخدام نموذج البرمجة الخطية في علاج مشكلة تحديد أفضل تشكيلة يمكن إنتاجها من منتجات",answer:true},
+      {type:"tf",text:"لا يمكن إستخدام نموذج البرمجة الخطية فى مشكلة جدولة الإنتاج ورسم سياسة المخزون",answer:false},
+      {type:"tf",text:"يمكن إستخدام نموذج البرمجة الخطية فى مشكلة اختيار التشكيلة الأفضل من الاستثمارات التي تعظم العائد",answer:true},
+      {type:"tf",text:"يمكن إستخدام نموذج البرمجة الخطية فى مشكلة تخفيض موازنة الإعلانات",answer:true},
+      {type:"tf",text:"يمكن إستخدام نموذج البرمجة الخطية فى مشكلة رفع موازنة الإعلانات",answer:false},
+      {type:"tf",text:"من خصائص نموذج البرمجة الخطية وجود دالة الهدف مع وجود قيود تحد من تحقيق ذلك الهدف",answer:true},
+      {type:"tf",text:"من خصائص نموذج البرمجة الخطية عدم وجود دالة الهدف مع عدم وجود قيود تحد من تحقيق ذلك الهدف",answer:false},
+      {type:"tf",text:"الأسلوب الإنتاجي: هو عبارة عن الطريقة أو الوسيلة التي يمكن استخدامها لمزج عناصر الإنتاج للحصول على ناتج معين",answer:true},
+      {type:"tf",text:"النشاط الإنتاجي: هو إنتاج قدر معين من السلعة باستخدام أسلوب إنتاجي معين",answer:true},
+      {type:"tf",text:"البرنامج الإنتاجي المزرعي: هو عبارة عن مجموعة من الأنشطة الإنتاجية",answer:true},
+      {type:"tf",text:"العلاقات الخطية: وهي إما أن تكون في صورة لا متساويات (متباينات) خطية أو معادلات خطية",answer:true},
+      {type:"tf",text:"معادلة الربح: تعبر عن صافي الدخل المتحصل عليه للأنشطة التي يتضمنها البرنامج الإنتاجي",answer:true},
+      {type:"tf",text:"معادلة المعيار: تعبر عن مقدار التغير في معادلة الربح نتيجة إدخال وحدة من نشاط إنتاجي",answer:true},
+      {type:"tf",text:"في نموذج البرمجة الخطية شرط عدم السالبية أكبر من أو يساوى الصفر",answer:true},
+      {type:"tf",text:"في نموذج البرمجة الخطية شرط عدم السالبية أقل من أو يساوى الصفر",answer:false},
+    ]
+  },
+  {
+    title: "اختبار الفصل الثامن",
+    icon: "🎯",
+    questions: [
+      {type:"tf",text:"مقاييس الجدارة الإنتاجية لا يمكن إستعمالها فى كثير من المناطق المختلفة عن بعضها سواء في أنماطها المزرعية أو ظروف الإنتاج أو العوامل الجوية.",answer:false},
+      {type:"tf",text:"ومن أكثر معايير الجدارة الإنتاجية المزرعية شيوعاً الغلة الفدانية للزرع النباتى الرئيسى.",answer:true},
+      {type:"tf",text:"معيار الغلة الفدانية لا يمكن إستعمالة فى المزارع المتخصصة.",answer:false},
+      {type:"tf",text:"ومن أكثر معايير الجدارة الإنتاجية المزرعية شيوعاً الغلة من الوحدة الحيوانية",answer:true},
+      {type:"tf",text:"الرقم القياسى للغلة الزراعية النباتية يبدو في صورة نسبة مئوية لغلات الزروع النباتية كلها الجارى إنتاجها على مزرعة من المزارع.",answer:true},
+      {type:"tf",text:"من مقاييس الجدارة الانتاجية الرقم القياسى للغلة الزرعية الحيوانية.",answer:true},
+      {type:"tf",text:"نسبة إجمالى الدخل إلى إجمالى التكاليف المزرعية يعتبر من المقاييس الشاملة للكفاءة الانتاجية.",answer:true},
+      {type:"tf",text:"وحدة العمل عبارة عن معيار العمل الذي يُستنفذ أى يُستخدم في إنتاج زروع حيوانية تغل دخلاً مزرعياً مباشراً",answer:true},
+      {type:"tf",text:"يعتبر متوسط النصيب العمالى الفردى من المساحة المزروعة في المزارع المتخصصة في إنتاج زرع نباتى معين واحد من أصعب معايير الجدارة الإنتاجية",answer:false},
+      {type:"tf",text:"يستعمل متوسط النصيب العمالى الفردى من وحدات الناتج كمعيار مناسب للجدارة الإنتاجية العمالية في المزارع التي تقع في المناطق المتخصصة.",answer:true},
+      {type:"tf",text:"متوسط النصيب الفدانى من الأجور عبارة عن قسمة إجمالى قيمة عمل الرجال المأجور وغير المأجور بما في ذلك أجر المنظم أى الزارع نفسه – على عدد الأفدنة التي شغلها الزرع التى تتخصصت المزرعة في إنتاجه.",answer:true},
+      {type:"tf",text:"يستعمل الرقم القياسى للناتج للوصول إلى مقارنات أكثر صفاءً للجدارة الإنتاجية العمالية المزرعية.",answer:true},
+      {type:"tf",text:"من القواعد الاقتصادية لإدارة المزرعة القواعد الاقتصادية المتعلقة باستخدام مورد في إنتاج ناتج واحد.",answer:true},
+      {type:"tf",text:"من القواعد الاقتصادية لإدارة المزارع القواعد الاقتصادية المتعلقة باستخدام موردين في إنتاج ناتج واحد.",answer:true},
+      {type:"tf",text:"من القواعد الاقتصادية لإدارة الأعمال المزرعية القواعد الاقتصادية المتعلقة بتحقيق أقصى ربح باستخدام التكاليف الحدية والإيراد الحدى.",answer:true},
+      {type:"tf",text:"من القواعد الاقتصادية لإدارة الأعمال المزرعية القواعد الاقتصادية المتعلقة باستخدام مورد واحد في إنتاج ناتجين أو أكثر.",answer:true},
+      {type:"tf",text:"يصف قانون تناقص الغلة الاتجاه العام للتغيرات التي تطرأ على إنتاج الوحدة الإنتاجية عند تغير الكميات المستخدمة من عنصر واحد فقط من عناصر الإنتاج.",answer:true},
+      {type:"tf",text:"لتحقيق أقصى ربح ممكن باستخدام منحنيات الإيراد الحدى والتكاليف الحدية يشترط المبدأ الاقتصادي.",answer:true},
+      {type:"tf",text:"يتحدد الناتج من السلعة المعظمة للأرباح عندما الإيراد الحدى (السعر) لا يساوى التكلفة الحدية.",answer:false},
+      {type:"tf",text:"يختلف حجم الربح الذي يحققه المنتج أو الخسارة على وضع منحنى متوسط التكلفة الكلية لكل منتج.",answer:true},
+      {type:"tf",text:"المنتجات المرتبطة عبارة عن ناتجين أو أكثر يتحصل عليها من عمليات إنتاجية مختلفة",answer:false},
+    ]
+  }
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let currentChapterIdx = 0;
+let currentQuestions = [];
+let currentQIdx = 0;
+let score = 0;
+let answered = false;
+
+// ============================================================
+// BUILD HOME
+// ============================================================
+function buildHome() {
+  const grid = document.getElementById('chapters-grid');
+  grid.innerHTML = '';
+  const icons = ['🌾','📊','📋','🏡','🔍','📜','📐','🎯'];
+  chapters.forEach((ch, i) => {
+    const card = document.createElement('div');
+    card.className = 'chapter-card';
+    card.innerHTML = `
+      <div class="card-stripe"></div>
+      <div class="card-inner">
+        <div class="card-header">
+          <div class="card-num-badge">0${i+1}</div>
+          <div class="card-emoji">${icons[i]}</div>
+        </div>
+        <div class="card-title">${ch.title}</div>
+        <div class="card-footer">
+          <div class="card-start-btn">ابدأ الآن ←</div>
+          <div class="card-chevron">↑</div>
+        </div>
+      </div>
+    `;
+    card.onclick = () => startChapter(i);
+    grid.appendChild(card);
+  });
+}
+
+// ============================================================
+// START CHAPTER
+// ============================================================
+function startChapter(idx) {
+  currentChapterIdx = idx;
+  currentQuestions = [...chapters[idx].questions];
+  currentQIdx = 0;
+  score = 0;
+  showScreen('quiz-screen');
+  document.getElementById('quiz-title').textContent = chapters[idx].title;
+  renderQuestion();
+}
+
+// ============================================================
+// RENDER QUESTION
+// ============================================================
+function renderQuestion() {
+  answered = false;
+  const q = currentQuestions[currentQIdx];
+  const total = currentQuestions.length;
+
+  document.getElementById('quiz-counter').textContent = `السؤال ${currentQIdx+1} من ${total}`;
+  document.getElementById('progress-bar').style.width = `${((currentQIdx)/total)*100}%`;
+
+  const badge = document.getElementById('q-type-badge');
+  badge.textContent = q.type === 'tf' ? '✓ صح أم خطأ' : '☰ اختيار من متعدد';
+
+  document.getElementById('q-text').textContent = q.text;
+
+  const opts = document.getElementById('q-options');
+  opts.innerHTML = '';
+
+  if (q.type === 'tf') {
+    badge.textContent = '✓ صح أم خطأ';
+    opts.innerHTML = `
+      <div class="tf-buttons">
+        <button class="tf-btn true-btn" onclick="answerTF(true, this)">
+          <span class="tf-icon">✅</span>
+          <span class="tf-label">صح</span>
+        </button>
+        <button class="tf-btn false-btn" onclick="answerTF(false, this)">
+          <span class="tf-icon">❌</span>
+          <span class="tf-label">خطأ</span>
+        </button>
+      </div>
+    `;
+  } else {
+    badge.textContent = '☰ اختيار من متعدد';
+    const letters = ['أ','ب','ج','د'];
+    q.options.forEach((opt, i) => {
+      const btn = document.createElement('div');
+      btn.className = 'mcq-option';
+      const label = opt.startsWith('أ-') || opt.startsWith('ب-') || opt.startsWith('ج-') || opt.startsWith('د-') ? opt.slice(3).trim() : opt;
+      btn.innerHTML = `<div class="opt-letter">${letters[i]}</div><div>${opt}</div>`;
+      btn.onclick = function() { answerMCQ(i, this); };
+      opts.appendChild(btn);
+    });
+  }
+
+  const fb = document.getElementById('feedback-box');
+  fb.className = 'feedback-box';
+  fb.innerHTML = '';
+
+  const btnNext = document.getElementById('btn-next');
+  btnNext.className = 'btn-next';
+  btnNext.textContent = currentQIdx === currentQuestions.length - 1 ? '🏁 إنهاء الاختبار' : 'التالي ←';
+
+  // re-animate card
+  const card = document.getElementById('question-card');
+  card.style.animation = 'none';
+  card.offsetHeight;
+  card.style.animation = 'questionIn 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both';
+}
+
+// ============================================================
+// ANSWER TF
+// ============================================================
+function answerTF(selected, btn) {
+  if (answered) return;
+  answered = true;
+  const q = currentQuestions[currentQIdx];
+  const correct = q.answer;
+
+  document.querySelectorAll('.tf-btn').forEach(b => b.disabled = true);
+
+  if (selected === correct) {
+    btn.classList.add('selected-correct');
+    score++;
+    showFeedback(true);
+  } else {
+    btn.classList.add('selected-wrong');
+    // show correct
+    document.querySelectorAll('.tf-btn').forEach(b => {
+      const isTrue = b.classList.contains('true-btn');
+      if (isTrue === correct) b.classList.add('show-correct');
+    });
+    showFeedback(false);
+  }
+
+  document.getElementById('btn-next').classList.add('show');
+}
+
+// ============================================================
+// ANSWER MCQ
+// ============================================================
+function answerMCQ(idx, btn) {
+  if (answered) return;
+  answered = true;
+  const q = currentQuestions[currentQIdx];
+  const correct = q.answer;
+
+  document.querySelectorAll('.mcq-option').forEach(b => b.onclick = null);
+
+  if (idx === correct) {
+    btn.classList.add('correct');
+    score++;
+    showFeedback(true);
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('.mcq-option')[correct].classList.add('correct');
+    showFeedback(false);
+  }
+
+  document.getElementById('btn-next').classList.add('show');
+}
+
+// ============================================================
+// FEEDBACK
+// ============================================================
+function showFeedback(isCorrect) {
+  const fb = document.getElementById('feedback-box');
+  fb.className = 'feedback-box show ' + (isCorrect ? 'correct-fb' : 'wrong-fb');
+  fb.innerHTML = `
+    <div class="feedback-icon">${isCorrect ? '🎉' : '😔'}</div>
+    <div class="feedback-text">${isCorrect ? 'إجابة صحيحة! أحسنت' : 'إجابة خاطئة! راجع الإجابة الصحيحة'}</div>
+  `;
+}
+
+// ============================================================
+// NEXT
+// ============================================================
+function nextQuestion() {
+  if (currentQIdx < currentQuestions.length - 1) {
+    currentQIdx++;
+    renderQuestion();
+  } else {
+    showResults();
+  }
+}
+
+// ============================================================
+// RESULTS
+// ============================================================
+function showResults() {
+  showScreen('results-screen');
+  const total = currentQuestions.length;
+  const wrong = total - score;
+  const pct = Math.round((score / total) * 100);
+
+  document.getElementById('result-score').textContent = `${pct}%`;
+  document.getElementById('stat-correct').textContent = score;
+  document.getElementById('stat-wrong').textContent = wrong;
+  document.getElementById('stat-pct').textContent = `${pct}%`;
+  document.getElementById('result-emoji').textContent =
+    pct >= 90 ? '🏆' : pct >= 70 ? '🌟' : pct >= 50 ? '👍' : '📚';
+
+  // animate ring based on score
+  const ring = document.querySelector('.result-ring');
+  if (ring) {
+    const deg = Math.round(pct * 3.6);
+    const color1 = pct >= 70 ? '#10b981' : pct >= 50 ? '#f59e0b' : '#ef4444';
+    const color2 = pct >= 70 ? '#06b6d4' : pct >= 50 ? '#fbbf24' : '#f87171';
+    ring.style.background = `conic-gradient(${color1} 0deg, ${color2} ${deg}deg, rgba(255,255,255,0.06) ${deg}deg)`;
+  }
+
+  document.getElementById('progress-bar').style.width = '100%';
+}
+
+function retryChapter() {
+  startChapter(currentChapterIdx);
+}
+
+function goHome() {
+  showScreen('home-screen');
+  buildHome();
+}
+
+// ============================================================
+// SCREEN MANAGEMENT
+// ============================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+  window.scrollTo(0, 0);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+buildHome();
+</script>
+</body>
+</html>
